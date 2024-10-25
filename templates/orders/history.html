@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Buyurtmalar Tarixi</h1>
+<table>
+    <tr>
+        <th>Xizmat nomi</th>
+        <th>Buyurtma qilingan vaqt</th>
+        <th>Taxminiy tugatish vaqti</th>
+    </tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.service.name }}</td>
+        <td>{{ order.created_at }}</td>
+        <td>{{ order.expected_completion_time }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

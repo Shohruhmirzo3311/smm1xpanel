@@ -1,0 +1,62 @@
+
+
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block content %}
+
+<!-- Welcome Section -->
+<div class="container mt-5">
+    <div class="jumbotron text-center p-5 rounded" style="background: linear-gradient(135deg, #1e3c72, #2a5298); color: white;">
+        <h1 class="display-4 fw-bold">Smm1x_Panelga Xush Kelibsiz!</h1>
+        <p class="lead">Telegram, Instagram, YouTube va boshqa platformalar uchun sifatli SMM xizmatlarini taqdim etamiz.</p>
+        <hr class="my-4 border-light">
+        <p class="fw-light">O'z brendingizni o'stirish uchun ishonchli xizmatlarimizdan foydalaning.</p>
+        <a class="btn btn-outline-light btn-lg mt-3" href="{% url 'services:service_list' %}" role="button">Xizmatlarni ko'rish</a>
+    </div>
+</div>
+
+<!-- Guide Section -->
+<div class="container mt-5">
+    <h3 class="text-center fw-bold" style="color: #2a5298;">Saytdan foydalanish qo‘llanmasi</h3>
+    <p class="text-center text-muted">Quyidagi qadamlar orqali bizning xizmatlardan qanday foydalanishni bilib oling.</p>
+</div>
+
+<!-- Step-by-step Guide Section -->
+<div class="container mt-4">
+    <h3 class="text-center mb-4 fw-bold" style="color: #1e3c72;">Xizmatdan foydalanish bosqichlari</h3>
+    <div class="row mt-4">
+        {% for step in steps %}
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm h-100" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; transition: transform 0.3s, box-shadow 0.3s;">
+                <div class="card-body text-center">
+                    <div class="icon mb-3" style="font-size: 2.5rem;">
+                        <i class="fas fa-{{ step.icon }}"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{{ step.title }}</h5>
+                    <p class="card-text">{{ step.description }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="container mt-5">
+    <p class="text-center text-muted">Bizning maqsadimiz - sizning ijtimoiy media faoliyatingizni oshirish uchun sifatli xizmatlar taqdim etishdir. Tez va ishonchli xizmatlarimiz orqali brendingizni o'stiring va kengroq auditoriyaga erishing.</p>
+</div>
+
+<!-- Contact Section -->
+<div class="container mt-5 text-center">
+    <h5 style="color: #1e3c72;" class="fw-bold">Biz bilan bog'laning:</h5>
+    <p class="text-muted">
+        <strong>Admin Telegram:</strong> 
+        <a href="https://t.me/admin_telegram_account" target="_blank" style="color: #2575fc;">@admin_telegram_account</a><br>
+        <strong>Web-sayt kanali:</strong> 
+        <a href="https://t.me/website_channel" target="_blank" style="color: #2575fc;">t.me/website_channel</a>
+    </p>
+</div>
+
+{% endblock %}

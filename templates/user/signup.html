@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Ro'yxatdan o'tish</h1>
+    <form method="post" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+        <label for="id_username">Foydalanuvchi nomi:</label>
+        <input type="text" id="id_username" name="username" required>
+
+        <label for="id_email">Email:</label>
+        <input type="email" id="id_email" name="email" required>
+
+        <label for="id_password1">Parol:</label>
+        <input type="password" id="id_password1" name="password1" required>
+
+        <label for="id_password2">Parolni tasdiqlash:</label>
+        <input type="password" id="id_password2" name="password2" required>
+
+        <button type="submit">Ro'yxatdan o'tish</button>
+    </form>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

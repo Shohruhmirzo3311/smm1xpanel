@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMM Panel - Xizmatlar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">SMM Xizmatlar</h1>
+
+        <!-- YouTube Xizmatlari -->
+        <div class="mb-5">
+            <h2>YouTube Xizmatlari</h2>
+            <div class="list-group">
+                {% for service in youtube_services %}
+                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">{{ service.name }}</h5>
+                        <p class="mb-1">{{ service.description }}</p>
+                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Telegram Xizmatlari -->
+        <div class="mb-5">
+            <h2>Telegram Xizmatlari</h2>
+            <div class="list-group">
+                {% for service in telegram_services %}
+                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">{{ service.name }}</h5>
+                        <p class="mb-1">{{ service.description }}</p>
+                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Instagram Xizmatlari -->
+        <div class="mb-5">
+            <h2>Instagram Xizmatlari</h2>
+            <div class="list-group">
+                {% for service in instagram_services %}
+                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">{{ service.name }}</h5>
+                        <p class="mb-1">{{ service.description }}</p>
+                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
