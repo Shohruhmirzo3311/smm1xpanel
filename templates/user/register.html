@@ -1,10 +1,66 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-  <h2>Register</h2>
-  <form method="post">
+<form method="post">
     {% csrf_token %}
-    {{ form | crispy }}
-    <button type="submit">Register</button>
-  </form>
+    {{ form|crispy }}  <!-- Using crispy forms to render the form nicely -->
+    <button type="submit">Ro'yxatdan o'tish</button>
+</form>
+
+<script>
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Cookie'ni olish uchun funksiya
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Formani yuborishni boshqarish
+    document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault();  // Formani yuborishni to'xtatish
+
+        const formData = new FormData(this);  // Forma ma'lumotlarini olish
+
+        // AJAX so'rovini yuborish
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',  // Cookie'larni yuborish
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',  // AJAX so'rovi ekanligini ko'rsatish
+                'X-CSRFToken': getCookie('csrftoken')  // CSRF tokenini olish
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');  // Tarmoq javobi notog'ri bo'lsa xato
+            }
+            return response.json();  // Javobni JSON formatida qaytarish
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);  // Muvaffaqiyatli xabar
+                window.location.href = "{% url 'services:service_list' %}";  // Xizmatlar ro'yxati sahifasiga yo'naltirish
+            } else {
+                alert(data.message);  // Xato xabar
+            }
+        })
+        .catch(error => console.error('Error:', error));  // Xatolarni konsolga chiqarish
+    });
+</script>
+
 {% endblock %}

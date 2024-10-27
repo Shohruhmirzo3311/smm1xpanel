@@ -15,6 +15,7 @@ requests = "*"
 jwt = "*"
 pillow = "*"
 django-extensions = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

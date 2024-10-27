@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from datetime import timedelta
 from django.utils import timezone
 import decimal
 import requests
 from django.conf import settings
+
 
 User = get_user_model()
 
@@ -227,6 +229,14 @@ class PaymentMethod(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Karta: {self.card_number}"
+
+
+class Balance(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} so'm"
 
 
 # Yana bir model qo'shilishi mumkin, masalan, cyber attackdan himoyalanish

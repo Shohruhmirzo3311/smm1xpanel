@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Balansni to'ldirish</h2>
+<p> <strong>{{ site_card_number }}</strong></p>
+
+<form method="post">
+    {% csrf_token %}
+</form>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+<!-- services/templates/services/balance/view.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Balans</h1>
+<p>Joriy balans: {{ balance.amount }} so'm</p>
+<a href="{% url 'services:top_up_balance' %}">Balansni to'ldirish</a>
+{% endblock %}

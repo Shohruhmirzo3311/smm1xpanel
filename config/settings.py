@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-a#2c8(f=66qk(bf8my+sl#l!*v9*t4-m(m8zwlo_f#%80yr&(f
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
 
 
 # Application definition
@@ -47,10 +48,21 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',
     'django_extensions',
+    'corsheaders',
     #o'zim ornatgan applar
     'user',
     'services',
 ]
+
+REST_FRAMEWORK = {
+    # Default permission classes
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    # Default pagination class
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
 
 AUTH_USER_MODEL = 'user.User'
 
@@ -63,7 +75,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    # boshqa ruxsat berilgan domenlar
+]
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -161,6 +181,9 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 LOGIN_REDIRECT_URL = 'services:services/'
 LOGOUT_REDIRECT_URL = 'user:login'
+# Xavfsiz URL manzillarini belgilash
+ACCOUNT_LOGOUT_REDIRECT_URL = 'user:home'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Emailni tasdiqlashda kirishni qayta tiklash
 
 
 # Sessiya sozlamalari
@@ -169,3 +192,5 @@ SESSION_COOKIE_AGE = 1209600  # 2 hafta davomida sessiya saqlanadi (soniyalar ko
 
 SESSION_COOKIE_SECURE = False  # Test paytida xavfsizlikni kamaytirish
 CSRF_COOKIE_SECURE = False
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'  # yoki 'bootstrap5', agar siz Bootstrap 5 dan foydalansangiz

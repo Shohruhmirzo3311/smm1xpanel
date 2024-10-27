@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets
-from .models import Service, Order, Category
+from .models import Service, Order, Category, Balance
 from .serializers import ServiceSerializer, OrderSerializer
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # HTML-based views
 def service_list(request):
@@ -28,6 +29,24 @@ def create_order(request, service_id):
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'orders/history.html', {'orders': orders})
+
+
+def balance_view(request):
+    if request.user.is_authenticated:
+        try:
+            balance = Balance.objects.get(user=request.user)  # Foydalanuvchi balansini olish
+            return render(request, 'services/balance/view.html', {'balance': balance})
+        except Balance.DoesNotExist:
+            return render(request, 'services/balance/view.html', {'error': 'Balans topilmadi.'})
+    else:
+        return redirect('user:login')  # Foydalanuvchi tizimga kirgan bo'lishi kerak
+
+
+@login_required  # Foydalanuvchini autentifikatsiya qilish
+def top_up_balance(request):
+    site_card_number = "1234 5678 9012 3456"  # Saytning karta raqami
+
+    return render(request, 'services/balance/top_up.html', {'site_card_number': site_card_number})
 
 
 # DRF API views
