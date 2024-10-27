@@ -9,11 +9,12 @@
             <h2><i class="fab fa-youtube"></i> YouTube Xizmatlari</h2>
             <div class="list-group">
                 {% for service in youtube_services %}
-                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                    <div class="list-group-item">
                         <h5 class="mb-1">{{ service.name }}</h5>
                         <p class="mb-1">{{ service.description }}</p>
                         <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                    </a>
+                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -23,11 +24,12 @@
             <h2><i class="fab fa-telegram-plane"></i> Telegram Xizmatlari</h2>
             <div class="list-group">
                 {% for service in telegram_services %}
-                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                    <div class="list-group-item">
                         <h5 class="mb-1">{{ service.name }}</h5>
                         <p class="mb-1">{{ service.description }}</p>
                         <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                    </a>
+                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -37,13 +39,38 @@
             <h2><i class="fab fa-instagram"></i> Instagram Xizmatlari</h2>
             <div class="list-group">
                 {% for service in instagram_services %}
-                    <a href="{% url 'payments:payment_page' service_id=service.id %}" class="list-group-item list-group-item-action">
+                    <div class="list-group-item">
                         <h5 class="mb-1">{{ service.name }}</h5>
                         <p class="mb-1">{{ service.description }}</p>
                         <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                    </a>
+                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    </div>
                 {% endfor %}
             </div>
         </div>
+
+        <div id="service-detail" style="display:none;">
+            <h2>Xizmat Tafsilotlari</h2>
+            <div id="detail-content"></div>
+            <button id="close-detail">Yopish</button>
+        </div>
     </div>
+
+    <script>
+    document.querySelectorAll('.btn-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceId = this.getAttribute('data-service-id');
+            fetch(`/services/${serviceId}/detail/`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('detail-content').innerHTML = data;
+                    document.getElementById('service-detail').style.display = 'block';
+                });
+        });
+    });
+
+    document.getElementById('close-detail').addEventListener('click', function() {
+        document.getElementById('service-detail').style.display = 'none';
+    });
+    </script>
 {% endblock %} <!-- Kontent bloki tugashi -->

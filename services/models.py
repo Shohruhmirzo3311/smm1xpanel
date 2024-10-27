@@ -133,7 +133,6 @@ class Service(models.Model):
 
 # Modelda foydalanish uchun:
     service_type = models.CharField(max_length=30, choices=SERVICE_TYPES, default='follow')
-
     name = models.CharField(max_length=100)
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='YouTube')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)  # Kategoriya bilan bog'lash
@@ -218,3 +217,22 @@ class Order(models.Model):
         ordering = ['-created_at']
         verbose_name = "Buyurtma"
         verbose_name_plural = "Buyurtmalar"
+
+
+class PaymentMethod(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    card_number = models.CharField(max_length=16)  # karta raqami
+    expiry_date = models.CharField(max_length=5)  # MM/YY formatida
+    cvv = models.CharField(max_length=3)
+
+    def __str__(self):
+        return f"{self.user.username} - Karta: {self.card_number}"
+
+
+# Yana bir model qo'shilishi mumkin, masalan, cyber attackdan himoyalanish
+class SecuritySettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    is_two_factor_enabled = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} xavfsizlik sozlamalari"

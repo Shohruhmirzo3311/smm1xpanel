@@ -12,10 +12,17 @@ def service_list(request):
     return render(request, 'services/service_list.html', {'services': services})
 
 @login_required
+def service_detail_ajax(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    return render(request, 'services/service_detail_ajax.html', {'service': service})
+
+
+@login_required
 def create_order(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     order = Order.objects.create(user=request.user, service=service)
     return redirect('orders/history')
+
 
 @login_required
 def order_history(request):
