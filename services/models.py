@@ -132,7 +132,7 @@ class Service(models.Model):
     ]
 
 # Modelda foydalanish uchun:
-    service_type = models.CharField(max_length=30, choices=SERVICE_TYPES)
+    service_type = models.CharField(max_length=30, choices=SERVICE_TYPES, default='follow')
 
     name = models.CharField(max_length=100)
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='YouTube')

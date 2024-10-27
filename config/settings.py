@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-a#2c8(f=66qk(bf8my+sl#l!*v9*t4-m(m8zwlo_f#%80yr&(f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks',
+    'django_extensions',
     #o'zim ornatgan applar
     'user',
     'services',
@@ -158,10 +159,13 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
-LOGIN_REDIRECT_URL = 'service_list/'
-LOGOUT_REDIRECT_URL = 'user:home/'
+LOGIN_REDIRECT_URL = 'services:services/'
+LOGOUT_REDIRECT_URL = 'user:login'
 
 
 # Sessiya sozlamalari
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Sessiyalar ma'lumotlar bazasida saqlanadi
 SESSION_COOKIE_AGE = 1209600  # 2 hafta davomida sessiya saqlanadi (soniyalar ko'rinishida)
+
+SESSION_COOKIE_SECURE = False  # Test paytida xavfsizlikni kamaytirish
+CSRF_COOKIE_SECURE = False

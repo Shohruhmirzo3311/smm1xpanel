@@ -6,7 +6,8 @@ from django.contrib.auth import login, logout
 from .forms import UserRegistrationForm, UserLoginForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
+from django.utils.http import url_has_allowed_host_and_scheme
 
 User = get_user_model()
 
@@ -38,24 +39,37 @@ def register(request):
     return render(request, 'user/register.html', {'form': form})
 
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 def verify_email(request):
     if request.method == 'POST':
         verification_code = request.POST.get('verification_code')
-        expected_code = request.session.get('verification_code')  # Sessiyadan tasdiqlash kodini olish
+        expected_code = request.session.get('verification_code')
 
-        if verification_code == expected_code:  # Kodni tekshirish
+        if verification_code == expected_code:
             messages.success(request, 'Sizning hisobingiz tasdiqlandi!')
-            
-            # Bu yerda foydalanuvchining emailini tasdiqlash yoki hisob holatini yangilash logikasini qo'shishingiz mumkin.
-            user = request.user  # Tizimga kirgan foydalanuvchi
-            user.email_verified = True  # Masalan, email tasdiqlanganligini yangilang
-            user.save()  # O'zgarishlarni saqlang
-            
-            return redirect('login')  # Tasdiqlashdan so'ng login sahifasiga o'ting
+
+            # Sessiyadagi email orqali foydalanuvchini olish
+            user_email = request.session.get('user_email')
+            try:
+                user = User.objects.get(email=user_email)
+                user.email_verified = True
+                user.save()
+
+                # Sessiya ma'lumotlarini tozalash
+                del request.session['verification_code']
+                del request.session['user_email']
+
+                return redirect('user:login')  # To'g'ri yo'naltirish
+            except User.DoesNotExist:
+                messages.error(request, 'Foydalanuvchi topilmadi.')
+                return redirect('user:register')
         else:
             messages.error(request, 'Noto\'g\'ri tasdiqlash kodi.')
     
-    return render(request, 'user/verify_email.html')  # Tasdiqlash sahifasini ko'rsatish
+    return render(request, 'user/verify_email.html')
 
 def home(request):
     if request.method == 'POST':
@@ -81,22 +95,34 @@ def home(request):
     return render(request, 'user/home.html', context)
 
 def login_view(request):
-    next_url = request.GET.get('next', 'service_list')  # default url
+    next_url = request.GET.get('next')
+
     if request.method == 'POST':
         form = UserLoginForm(data=request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
 
-            if form.cleaned_data.get('remember_me'):
-                request.session.set_expiry(1209600)  # 2 hafta davomida sessiya
+            # Foydalanuvchini autentifikatsiya qilish
+            user = authenticate(username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                
+                # # `next_url` xavfsizligini tekshirish
+                # if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
+                #     return redirect(next_url)
+                # else:
+                return redirect('services:service_list')
             else:
-                request.session.set_expiry(0)  # Brauzer yopilganda sessiya tugaydi
-
-            return redirect(next_url)  # Foydalanuvchini 'next' parametriga yo'naltiring
+                messages.error(request, 'Noto‘g‘ri login yoki parol.')
+        else:
+            messages.error(request, 'Noto‘g‘ri login yoki parol.')
     else:
         form = UserLoginForm()
+
     return render(request, 'user/login.html', {'form': form})
+
 
 def logout_view(request):
     logout(request)

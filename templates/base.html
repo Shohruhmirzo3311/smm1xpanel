@@ -14,7 +14,8 @@
     
     <!-- FontAwesome -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOM1PVG7G/bd3E1g6BqE+Fz9RxobOvVZ2wF8i" crossorigin="anonymous">
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}"> <!-- O'zingizning stil faylingiz -->
 </head>
@@ -31,10 +32,13 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'user:register' %}">Ro'yxatdan o'tish</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'user:login' %}">Kirish</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'user:logout' %}">Chiqish</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'services:service_list' %}">Xizmatlar</a></li>
+                    {% if user.is_athenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user:register' %}">Ro'yxatdan o'tish</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user:login' %}">Kirish</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user:logout' %}">Chiqish</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'services:service_list' %}">Xizmatlar</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
