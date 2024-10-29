@@ -16,6 +16,9 @@ jwt = "*"
 pillow = "*"
 django-extensions = "*"
 django-cors-headers = "*"
+djangorestframework-simplejwt = "*"
+graphene-django = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

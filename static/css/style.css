@@ -1,0 +1,130 @@
+/* Umumiy sozlamalar */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff; /* Oq fon */
+    color: #333; /* Matn ranglari */
+}
+
+/* H1, H2, H3, H4 va H5 sarlavhalari */
+h1, h2, h3, h4, h5 {
+    font-weight: bold;
+    color: #1e3c72; /* Sarlavhalar uchun asosiy rang */
+}
+
+/* Jumbotron dizayni */
+.jumbotron {
+    background: linear-gradient(135deg, #4B0082, #3342c5);
+    color: white;
+}
+
+/* Tugmalar */
+.btn {
+    border-radius: 25px; /* Tugmalarni yumshoq qilish */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-outline-light {
+    border: 2px solid white;
+}
+
+.btn-outline-light:hover {
+    background-color: white;
+    color: #3342c5; /* Tugma ustiga kelsa rang o'zgarishi */
+}
+
+/* Card dizayni */
+.card {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    border-radius: 15px; /* Cardlar uchun yumshoq qirralar */
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Cardni biroz yuqoriga ko'tarish */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Soya qo'shish */
+}
+
+/* Link ranglari */
+a {
+    color: #2575fc; /* Link ranglari */
+    text-decoration: none; /* Chizilganligini olib tashlash */
+}
+
+a:hover {
+    text-decoration: underline; /* Ustiga kelsa chizish */
+}
+
+/* Qo'shimcha bo'limlar uchun matn o'lchamlari */
+.text-muted {
+    color: #6c757d; /* Oqim ranglar uchun */
+}
+
+/* Container dizayni */
+.container {
+    max-width: 1200px; /* Maksimal kenglik */
+    margin: 0 auto; /* Markazlashtirish */
+}
+
+.youtube-slide,
+.telegram-slide,
+.instagram-slide {
+    display: flex; /* Flexbox yordamida to'g'ri joylashtirish */
+    align-items: center; /* Vertikal markazlashtirish */
+}
+
+.youtube-slide i,
+.telegram-slide i,
+.instagram-slide i {
+    font-size: 50px; /* Ikonaning o'lchamini belgilash */
+    margin-right: 10px; /* Ikona va matn o'rtasida bo'shliq */
+}
+
+/* Karusel balandligini belgilash */
+.carousel-inner {
+    height: 500px; /* Siz xohlagan balandlik */
+}
+
+/* Rasmning balandligini cheklash */
+.carousel-item img {
+    height: 100%; /* Rasmning balandligini to'liq egallashi */
+    object-fit: cover; /* Rasmni muvofiq ravishda o'lchash */
+}
+
+/* Karusel balandligini belgilash */
+.carousel-inner {
+    height: 10rem; /* Siz xohlagan balandlik - 6 sm */
+}
+
+/* Rasmning balandligini cheklash */
+.carousel-item img {
+    height: 100%; /* Rasmning balandligini to'liq egallashi */
+    object-fit: cover; /* Rasmni muvofiq ravishda o'lchash */
+    max-height: 10rem; /* Rasmning maksimal balandligi - 6 sm */
+}
+
+/* Karusel balandligini belgilash */
+.carousel-inner {
+    height: 10rem; /* Siz xohlagan balandlik - 6 sm */
+}
+
+/* Rasmning balandligini cheklash */
+.carousel-item img {
+    height: 100%; /* Rasmning balandligini to'liq egallashi */
+    object-fit: contain; /* Rasmni ramkaga to'liq joylashtirish uchun */
+    max-height: 10rem; /* Rasmning maksimal balandligi - 6 sm */
+}
+
+
+
+/* Responsive dizayn */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 20px; /* Mobil qurilmalarda cardlar orasidagi bo'shliq */
+    }
+
+    .jumbotron {
+        padding: 2rem; /* Jumbotronni kichikroq qilish */
+    }
+}
+

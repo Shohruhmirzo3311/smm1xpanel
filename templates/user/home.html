@@ -8,8 +8,9 @@
 
 <!-- Welcome Section -->
 <div class="container mt-5">
-    <div class="jumbotron text-center p-5 rounded" style="background: linear-gradient(135deg, #1e3c72, #2a5298); color: white;">
-        <h1 class="display-4 fw-bold">Smm1x_Panelga Xush Kelibsiz!</h1>
+    <div class="jumbotron text-center p-5 rounded" style="background: linear-gradient(135deg,#4B0082, #3342c5); color: white;">
+    <!-- <div class="jumbotron text-center p-5 rounded" style="background: linear-gradient(135deg, #1e3c72, #2a5298); color: white;"> -->
+        <h1 class="display-4 fw-bold" style="color: beige;">Smm1x_Panelga Xush Kelibsiz!</h1>
         <p class="lead">Telegram, Instagram, YouTube va boshqa platformalar uchun sifatli SMM xizmatlarini taqdim etamiz.</p>
         <hr class="my-4 border-light">
         <p class="fw-light">O'z brendingizni o'stirish uchun ishonchli xizmatlarimizdan foydalaning.</p>
@@ -51,10 +52,68 @@
     <iframe width="560" height="315" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 
+
+
+<!-- FAQ Section with full-width background -->
+<div class="faq-section" style="background-color: whitesmoke; padding: 4rem 0;">
+    <div class="container">
+        <h3 class="text-center fw-bold faq-title">Ko'p So'raladigan Savollar</h3>
+        <div class="accordion mt-4" id="faqAccordion">
+            {% for faq in faqs %}
+            <div class="accordion-item faq-item">
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <button class="accordion-button faq-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                        <span class="faq-question">{{ faq.question }}</span> <!-- Savol matni -->
+                    </button>
+                </h2>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body faq-body">
+                        {{ faq.answer }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .faq-title {
+        color: #2a5298; /* Sarlavhaning rangi */
+    }
+
+    .accordion-item {
+        background-color: #fff; /* Kartalarning oq fon rangi */
+        border: 1px solid #dee2e6; /* Kartalar chegarasining rangi */
+        border-radius: 0.25rem; /* Burchaklarni yumshatish */
+        margin-bottom: 1rem; /* Kartalar orasidagi bo'sh joy */
+    }
+
+    .faq-button {
+        color: #6f42c1; /* Savol matni rangini binafsha */
+        text-align: left; /* Matnni chapga yo'naltirish */
+        width: 100%; /* Tugmani to'liq kenglikda ko'rsatish */
+        border: none; /* Tugma chegara chizig'ini olib tashlash */
+    }
+
+    .faq-button:hover {
+        color: #007bff; /* O'chirishda rang o'zgarishi */
+    }
+
+    .accordion-body {
+        background-color: #fff; /* Javoblar bo'limining oq fon rangi */
+        color: #333; /* Javob matni rangini belgilash */
+    }
+</style>
+
+
+
+
 <!-- About Section -->
 <div class="container mt-5">
     <p class="text-center text-muted">Bizning maqsadimiz - sizning ijtimoiy media faoliyatingizni oshirish uchun sifatli xizmatlar taqdim etishdir. Tez va ishonchli xizmatlarimiz orqali brendingizni o'stiring va kengroq auditoriyaga erishing.</p>
 </div>
+
 
 <!-- Contact Section -->
 <div class="container mt-5 text-center">
@@ -66,5 +125,21 @@
         <a href="https://t.me/Smm1xPanel_uz" target="_blank" style="color: #2575fc;">Telegram guruhimiz</a>
     </p>
 </div>
+
+
+<script>
+    // Adjusting accordion smooth open-close effect
+    document.querySelectorAll('.accordion-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            if (content.classList.contains('show')) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        });
+    });
+</script>
+
 
 {% endblock %}

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from datetime import timedelta
 from django.utils import timezone
 import decimal
+from decimal import Decimal
 import requests
 from django.conf import settings
 
@@ -137,19 +138,20 @@ class Service(models.Model):
     service_type = models.CharField(max_length=30, choices=SERVICE_TYPES, default='follow')
     name = models.CharField(max_length=100)
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='YouTube')
+    platform_token = models.CharField(max_length=255, blank=True, null=True)  # Platforma tokeni
     category = models.ForeignKey(Category, on_delete=models.CASCADE)  # Kategoriya bilan bog'lash
-    base_price = models.DecimalField(max_digits=10, decimal_places=2)
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
-    completion_time = models.IntegerField()  # daqiqalarda
-    completion_rate = models.IntegerField(default=50000)  # kuniga maksimal bajarilish miqdori
+    completion_time = models.IntegerField(editable=False)  # daqiqalarda
+    completion_rate = models.IntegerField(default=50000, editable=False)  # kuniga maksimal bajarilish miqdori
 
+    # ...
     def save(self, *args, **kwargs):
         # Narxni 30% foyda bilan hisoblash
-        self.price = self.base_price * 1.3
+        self.price = self.base_price * Decimal('1.3')
         if not self.completion_time:
             self.completion_time = 60
         super().save(*args, **kwargs)
-    
     def update_price(self):
         """
         Narxni tashqi API orqali yangilash funksiyasi.
@@ -234,6 +236,10 @@ class PaymentMethod(models.Model):
 class Balance(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def update_balance(self, amount):
+        self.amount += Decimal(str(amount))  # float ni Decimal ga aylantirish
+        self.save()
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} so'm"

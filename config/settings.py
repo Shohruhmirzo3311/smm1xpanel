@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django_extensions',
     'corsheaders',
+    'graphene_django',
     #o'zim ornatgan applar
     'user',
     'services',
@@ -57,12 +58,18 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     # Default permission classes
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
     # Default pagination class
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+# settings.py faylida
+GRAPHENE = {
+    'SCHEMA': 'services.schema.schema'  # Bu yerda 'myapp' o‘rniga o‘z ilovangiz nomini kiriting
+}
+
 
 AUTH_USER_MODEL = 'user.User'
 
@@ -172,15 +179,16 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_REQUIRED = True
+LOGIN_REDIRECT_URL = 'services:services'
+LOGOUT_REDIRECT_URL = 'user:login'
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
-LOGIN_REDIRECT_URL = 'services:services/'
-LOGOUT_REDIRECT_URL = 'user:login'
 # Xavfsiz URL manzillarini belgilash
 ACCOUNT_LOGOUT_REDIRECT_URL = 'user:home'
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Emailni tasdiqlashda kirishni qayta tiklash

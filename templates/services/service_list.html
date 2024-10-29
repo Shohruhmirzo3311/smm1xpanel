@@ -1,76 +1,117 @@
-{% extends "base.html" %} <!-- base.html dan meros olish -->
+{% extends "base.html" %}
+{% load static %}
 
-{% block content %} <!-- Kontent bloki boshlanishi -->
+{% block content %}
+    <!-- Karusel -->
+    <div id="carouselExampleDark" class="carousel carousel-dark slide">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+        <div class="carousel-inner">
+          <div class="carousel-item active" data-bs-interval="10000">
+            <img src="{% static 'images/telegramlogo.png' %}" class="d-block w-100" alt="...">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>Telegram xizmatlari</h5>
+            </div>
+          </div>
+          <div class="carousel-item" data-bs-interval="2000">
+            <img src="{% static 'images/instagramlogo.jpeg' %}" class="d-block w-100" alt="...">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>Instagram xizmatlari</h5>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <img src="{% static 'images/youtube.png' %}" class="d-block w-100" alt="...">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>YouTube xizmatlari</h5>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+      
+    <!-- Xizmatlar qismi -->
     <div class="container mt-5">
         <h1 class="text-center mb-4">SMM Xizmatlar</h1>
 
         <!-- YouTube Xizmatlari -->
-        <div class="mb-5">
+        <div class="service-category mb-5">
             <h2><i class="fab fa-youtube"></i> YouTube Xizmatlari</h2>
             <div class="list-group">
                 {% for service in youtube_services %}
-                    <div class="list-group-item">
-                        <h5 class="mb-1">{{ service.name }}</h5>
-                        <p class="mb-1">{{ service.description }}</p>
-                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    <div class="list-group-item service-item">
+                        <h5>{{ service.name }}</h5>
+                        <p class="description">{{ service.description }}</p>
+                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
+                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
+                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
+                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
+                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Telegram Xizmatlari -->
-        <div class="mb-5">
-            <h2><i class="fab fa-telegram-plane"></i> Telegram Xizmatlari</h2>
+        <div class="service-category mb-5">
+            <h2><i class="fab fa-telegram"></i> Telegram Xizmatlari</h2>
             <div class="list-group">
                 {% for service in telegram_services %}
-                    <div class="list-group-item">
-                        <h5 class="mb-1">{{ service.name }}</h5>
-                        <p class="mb-1">{{ service.description }}</p>
-                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    <div class="list-group-item service-item">
+                        <h5>{{ service.name }}</h5>
+                        <p class="description">{{ service.description }}</p>
+                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
+                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
+                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
+                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
+                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Instagram Xizmatlari -->
-        <div class="mb-5">
+        <div class="service-category mb-5">
             <h2><i class="fab fa-instagram"></i> Instagram Xizmatlari</h2>
             <div class="list-group">
                 {% for service in instagram_services %}
-                    <div class="list-group-item">
-                        <h5 class="mb-1">{{ service.name }}</h5>
-                        <p class="mb-1">{{ service.description }}</p>
-                        <small>Narxi: {{ service.price }} so'm | Bajarilish vaqti: {{ service.completion_time }} kun</small>
-                        <button class="btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+                    <div class="list-group-item service-item">
+                        <h5>{{ service.name }}</h5>
+                        <p class="description">{{ service.description }}</p>
+                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
+                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
+                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
+                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
+                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
                     </div>
                 {% endfor %}
             </div>
         </div>
-
-        <div id="service-detail" style="display:none;">
-            <h2>Xizmat Tafsilotlari</h2>
-            <div id="detail-content"></div>
-            <button id="close-detail">Yopish</button>
-        </div>
     </div>
 
-    <script>
-    document.querySelectorAll('.btn-details').forEach(button => {
-        button.addEventListener('click', function() {
-            const serviceId = this.getAttribute('data-service-id');
-            fetch(`/services/${serviceId}/detail/`)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('detail-content').innerHTML = data;
-                    document.getElementById('service-detail').style.display = 'block';
-                });
-        });
-    });
+    <!-- Xizmat tafsilotlari oynasi -->
+    <div id="service-detail" class="service-detail">
+        <button id="close-detail" class="btn-close" aria-label="Close"></button>
+        <div id="detail-content"></div>
+    </div>
 
-    document.getElementById('close-detail').addEventListener('click', function() {
-        document.getElementById('service-detail').style.display = 'none';
-    });
+    <!-- JavaScript kodlari -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        // Karuselni avtomatik o'zgartirish
+        var carousel = document.getElementById('carouselExampleDark');
+        var carouselInstance = new bootstrap.Carousel(carousel, {
+            interval: 2000, // Slaydlar orasidagi vaqt (milisekundlarda)
+            wrap: true // Karusel tugaganidan keyin qaytadan boshlanadi
+        });
     </script>
-{% endblock %} <!-- Kontent bloki tugashi -->
+{% endblock %}
