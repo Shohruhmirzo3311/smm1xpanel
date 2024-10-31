@@ -27,11 +27,21 @@ class UserBalance(models.Model):
         return self.balance >= decimal.Decimal(amount)
 
 
+class Platform(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 
 # Kategoriya modeli
 class Category(models.Model):
     name = models.CharField(max_length=100)
-
+    
+    class Meta:
+        verbose_name_plural = "categories"
+        
     def __str__(self):
         return self.name
 
@@ -137,21 +147,31 @@ class Service(models.Model):
 # Modelda foydalanish uchun:
     service_type = models.CharField(max_length=30, choices=SERVICE_TYPES, default='follow')
     name = models.CharField(max_length=100)
-    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='YouTube')
+    description = models.TextField(default="No description")
+    # platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='YouTube')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE)  # Platforma bilan bog'lanish
     platform_token = models.CharField(max_length=255, blank=True, null=True)  # Platforma tokeni
     category = models.ForeignKey(Category, on_delete=models.CASCADE)  # Kategoriya bilan bog'lash
     base_price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     completion_time = models.IntegerField(editable=False)  # daqiqalarda
     completion_rate = models.IntegerField(default=50000, editable=False)  # kuniga maksimal bajarilish miqdori
-
+    order_speed = models.IntegerField(default=0)
     # ...
     def save(self, *args, **kwargs):
+    # Agar self.base_price hali aniqlanmagan bo'lsa, 0 yoki boshqa mos qiymatni dastlabki sifatida belgilab olish
+        if self.base_price is None:
+            self.base_price = Decimal('0.00')
+
         # Narxni 30% foyda bilan hisoblash
         self.price = self.base_price * Decimal('1.3')
+    
+    # Agar completion_time qiymati hali aniqlanmagan bo'lsa, uni dastlabki 60 daqiqa deb belgilash
         if not self.completion_time:
             self.completion_time = 60
+
         super().save(*args, **kwargs)
+
     def update_price(self):
         """
         Narxni tashqi API orqali yangilash funksiyasi.

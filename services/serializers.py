@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import Service, Order
+from .models import Service, Order, Category
 from django.utils import timezone
 from datetime import timedelta
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+        
 class ServiceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
 

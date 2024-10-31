@@ -1,0 +1,18 @@
+<!-- templates/services/service_list_api.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Xizmatlar</h1>
+    <ul>
+        {% for service in services %}
+            <li>
+                <strong>{{ service.name }}</strong><br>
+                <em>{{ service.category__name }}</em><br>
+                <p>{{ service.description }}</p>
+                <p>To'lov: {{ service.price }} so'm</p>
+                <p>Tamomlanish vaqti: {{ service.completion_time }}</p>
+                <a href="{% url 'services:service_detail_ajax' service.id %}">Batafsil</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

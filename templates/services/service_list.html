@@ -2,116 +2,228 @@
 {% load static %}
 
 {% block content %}
-    <!-- Karusel -->
-    <div id="carouselExampleDark" class="carousel carousel-dark slide">
-        <div class="carousel-indicators">
-          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
-          <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
-        </div>
-        <div class="carousel-inner">
-          <div class="carousel-item active" data-bs-interval="10000">
-            <img src="{% static 'images/telegramlogo.png' %}" class="d-block w-100" alt="...">
-            <div class="carousel-caption d-none d-md-block">
-              <h5>Telegram xizmatlari</h5>
-            </div>
-          </div>
-          <div class="carousel-item" data-bs-interval="2000">
-            <img src="{% static 'images/instagramlogo.jpeg' %}" class="d-block w-100" alt="...">
-            <div class="carousel-caption d-none d-md-block">
-              <h5>Instagram xizmatlari</h5>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <img src="{% static 'images/youtube.png' %}" class="d-block w-100" alt="...">
-            <div class="carousel-caption d-none d-md-block">
-              <h5>YouTube xizmatlari</h5>
-            </div>
-          </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
+<!-- Karusel -->
+<div id="carouselExampleDark" class="carousel carousel-dark slide">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active" data-bs-interval="10000">
+      <img src="{% static 'images/telegramlogo.png' %}" class="d-block w-100" alt="Telegram">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Telegram xizmatlari</h5>
+      </div>
     </div>
+    <div class="carousel-item" data-bs-interval="2000">
+      <img src="{% static 'images/instagramlogo.jpeg' %}" class="d-block w-100" alt="Instagram">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Instagram xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/youtube.png' %}" class="d-block w-100" alt="YouTube">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>YouTube xizmatlari</h5>
+      </div>
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+
+<!-- Xizmatlar qismi -->
+<div class="container mt-5">
+  <h1 class="text-center mb-4">SMM Xizmatlar</h1>
+  
+  <div class="mb-4">
+    <label for="searchInput">Qidiruv:</label>
+    <input type="text" id="searchInput" class="form-control" placeholder="Platforma yoki kategoriya bo'yicha qidirish">
+  </div>
+
+ 
+  <!-- Platforma tanlash -->
+  <div class="mb-4">
+    <label for="platformSelect">Platforma:</label>
+    <select id="platformSelect" class="form-select">
+      <option value="all">Barchasi</option>
+      <option value="youtube">YouTube</option>
+      <option value="telegram">Telegram</option>
+      <option value="instagram">Instagram</option>
+    </select>
+  </div>
+  
+  <!-- Kategoriyalar -->
+  <div class="mb-4">
+    <label for="categorySelect">Kategoriyalar:</label>
+    <select id="categorySelect" class="form-select">
+      <option value="all">Barchasi</option>
+      <!-- Kategoriyalar dinamik yuklanadi -->
+    </select>
+  </div>
+
+  <!-- Xizmat tanlash -->
+  <div class="mb-4">
+    <label for="serviceSelect">Xizmat tanlash:</label>
+    <select id="serviceSelect" class="form-select">
+      <option value="all">Barchasi</option>
+      <!-- Xizmatlar dinamik yuklanadi -->
+    </select>
+  </div>
+
+   <!-- URL qo'shish -->
+  <div class="mb-4">
+    <label for="pageUrl">Xizmatni yuborish </label>
+    <input type="url" id="pageUrl" class="form-control" placeholder="Masalan, https://yourwebsite.com/">
+  </div>
+  
+  
+  <!-- Dinamik Xizmatlar Ro'yxati -->
+  <div class="row" id="serviceList"></div>
+  
+  <!-- Xizmatlar tavsilotlari modal -->
+  <div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="serviceDetailModalLabel">Xizmat tavsilotlari</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h5 id="serviceName"></h5>
+          <p id="serviceDescription"></p>
+          <small id="serviceCompletionTime"></small><br>
+          <p><strong>Narx:</strong> <span id="servicePrice"></span> so‘m</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+  const platformSelect = document.getElementById('platformSelect');
+  const categorySelect = document.getElementById('categorySelect');
+  const serviceSelect = document.getElementById('serviceSelect');
+  const searchInput = document.getElementById('searchInput');
+
+  // Kategoriyalarni yuklash
+  platformSelect.addEventListener('change', fetchCategories);
+  
+  async function fetchCategories() {
+    const platform = platformSelect.value;
+    const url = platform !== 'all' ? `/api/categories/${platform}/` : `/api/categories/`;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const categories = await response.json();
+      populateCategories(categories);
+      fetchServices();
+    } catch (error) {
+      console.error('Kategoriyalarni yuklashda xatolik:', error);
+    }
+  }
+
+  function populateCategories(categories) {
+    categorySelect.innerHTML = '<option value="all">Barchasi</option>';
+    categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.name;
+      categorySelect.appendChild(option);
+    });
+  }
+  
+  // Kategoriyani tanlaganda xizmatlarni yuklash
+  categorySelect.addEventListener('change', fetchServices);
+
+  // Xizmatlarni yuklash funksiyasi
+  async function fetchServices() {
+    let url = '/api/services/'; // Ensure this URL matches the urlpatterns
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const services = await response.json();
+        displayServices(services);  // Call displayServices to update the DOM
+        populateServiceSelect(services);
+    } catch (error) {
+        console.error('Error loading services:', error);
+    }
+}
+
+
+  // Xizmatlar ro'yxatini ko'rsatish
+  function displayServices(services) {
+    const serviceList = document.getElementById("serviceList");
+    serviceList.innerHTML = "";
+    services.forEach(service => {
+      const serviceItem = document.createElement("div");
+      serviceItem.classList.add("col-md-4", "mb-4");
+      serviceItem.innerHTML = `
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">${service.name}</h5>
+            <p class="card-text">${service.description}</p>
+            <small>Bajarilish vaqti: ${service.completion_time} daqiqa</small><br>
+            <strong>Narx:</strong> ${service.price} so‘m<br>
+            <button class="btn btn-primary btn-details" data-service-id="${service.id}">Batafsil</button>
+          </div>
+        </div>
+      `;
+      serviceList.appendChild(serviceItem);
+    });
+  }
+
+  // Xizmat tanlash uchun dinamik ro'yxatni to'ldirish
+  function populateServiceSelect(services) {
+    serviceSelect.innerHTML = '<option value="all">Barchasi</option>';
+    services.forEach(service => {
+      const option = document.createElement("option");
+      option.value = service.id;
+      option.textContent = service.name;
+      serviceSelect.appendChild(option);
+    });
+  }
+
+  // Xizmat tafsilotlarini modalda ko'rsatish
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('btn-details')) {
+      const serviceId = e.target.getAttribute('data-service-id');
+      showServiceDetails(serviceId);
+    }
+  });
+
+  async function showServiceDetails(serviceId) {
+    try {
+      const response = await fetch(`/api/services/${serviceId}/`);
+      const service = await response.json();
       
-    <!-- Xizmatlar qismi -->
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">SMM Xizmatlar</h1>
+      document.getElementById('serviceName').textContent = service.name;
+      document.getElementById('serviceDescription').textContent = service.description;
+      document.getElementById('serviceCompletionTime').textContent = `Bajarilish vaqti: ${service.completion_time} daqiqa`;
+      document.getElementById('servicePrice').textContent = service.price;
+      
+      const serviceDetailModal = new bootstrap.Modal(document.getElementById('serviceDetailModal'));
+      serviceDetailModal.show();
+    } catch (error) {
+      console.error('Xizmat tafsilotlarini ko‘rsatishda xatolik:', error);
+    }
+  }
 
-        <!-- YouTube Xizmatlari -->
-        <div class="service-category mb-5">
-            <h2><i class="fab fa-youtube"></i> YouTube Xizmatlari</h2>
-            <div class="list-group">
-                {% for service in youtube_services %}
-                    <div class="list-group-item service-item">
-                        <h5>{{ service.name }}</h5>
-                        <p class="description">{{ service.description }}</p>
-                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
-                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
-                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
-                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
-                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Telegram Xizmatlari -->
-        <div class="service-category mb-5">
-            <h2><i class="fab fa-telegram"></i> Telegram Xizmatlari</h2>
-            <div class="list-group">
-                {% for service in telegram_services %}
-                    <div class="list-group-item service-item">
-                        <h5>{{ service.name }}</h5>
-                        <p class="description">{{ service.description }}</p>
-                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
-                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
-                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
-                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
-                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Instagram Xizmatlari -->
-        <div class="service-category mb-5">
-            <h2><i class="fab fa-instagram"></i> Instagram Xizmatlari</h2>
-            <div class="list-group">
-                {% for service in instagram_services %}
-                    <div class="list-group-item service-item">
-                        <h5>{{ service.name }}</h5>
-                        <p class="description">{{ service.description }}</p>
-                        <small>Ishga tushish: 5-30 daqiqa | Tezlik: 10-30k/kun</small><br>
-                        <small>Chiqib ketishlar kuzatiladi, kafolat mavjud emas</small><br>
-                        <small>Narxi: {{ service.price }} so'm | Miqdor: Min: 10 - Maks: 500 000</small>
-                        <small>Bajarilish vaqti: {{ service.completion_time }} kun</small><br>
-                        <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Xizmat tafsilotlari oynasi -->
-    <div id="service-detail" class="service-detail">
-        <button id="close-detail" class="btn-close" aria-label="Close"></button>
-        <div id="detail-content"></div>
-    </div>
-
-    <!-- JavaScript kodlari -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script>
-        // Karuselni avtomatik o'zgartirish
-        var carousel = document.getElementById('carouselExampleDark');
-        var carouselInstance = new bootstrap.Carousel(carousel, {
-            interval: 2000, // Slaydlar orasidagi vaqt (milisekundlarda)
-            wrap: true // Karusel tugaganidan keyin qaytadan boshlanadi
-        });
-    </script>
+  // Qidiruv bo'yicha xizmatlarni filtrlash
+  searchInput.addEventListener('input', fetchServices);
+</script>
 {% endblock %}

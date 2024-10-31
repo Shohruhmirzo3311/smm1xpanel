@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from rest_framework import viewsets, permissions
-from .models import Service, Order, Category, Balance
-from .serializers import ServiceSerializer, OrderSerializer
+from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Service, Order, Category, Balance, Platform
+from .serializers import ServiceSerializer,CategorySerializer, OrderSerializer
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -11,6 +13,7 @@ logger = logging.getLogger(__name__)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import requests
+from django.http import JsonResponse
 
 # Logger yaratish
 logger = logging.getLogger(__name__)
@@ -48,10 +51,12 @@ def get_guarantee_from_api(service_id):
 # HTML-based views
 def service_list(request):
     categories = Category.objects.prefetch_related('service_set').all()
-    #return render(request, 'services/service_list.html', {'services': services})
+
+
     youtube_services = Service.objects.filter(category__name="YouTube")
     telegram_services = Service.objects.filter(category__name="Telegram")
     instagram_services = Service.objects.filter(category__name="Instagram")
+    
     context = {
         'youtube_services': youtube_services,
         'telegram_services': telegram_services,
@@ -60,6 +65,36 @@ def service_list(request):
     return render(request, 'services/service_list.html', context)
 
 
+logger = logging.getLogger(__name__)
+
+class category_list_api(APIView):
+    def get(self, request, platform_name):
+        logger.info(f"Platform name received: {platform_name}")
+        try:
+            platform = Platform.objects.get(name=platform_name)
+            categories = Category.objects.filter(service__platform=platform)
+            serializer = CategorySerializer(categories, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Platform.DoesNotExist:
+            return Response({'error': 'Platform not found'}, status=status.HTTP_404_NOT_FOUND)
+
+def service_list_api(request):
+    services = Service.objects.select_related('category').all().values(
+        'id', 'name', 'description', 'completion_time', 'order_speed', 'category__name'
+    )
+    return JsonResponse(list(services), safe=False)
+
+
+class CategoryList(APIView):
+    def get(self, request, platform=None):
+        if platform and platform != 'all':
+            categories = Category.objects.filter(platform=platform)  # platformga mos keluvchi kategoriyalar
+        else:
+            categories = Category.objects.all()  # Barcha kategoriyalar
+
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+    
 @login_required
 def service_detail_ajax(request, service_id):
     # Cache key yaratish
@@ -71,7 +106,13 @@ def service_detail_ajax(request, service_id):
         cache.set(cache_key, service, timeout=60*15)  # 15 daqiqaga saqlash
     
     guarantee = get_guarantee_from_api(service_id)
-    return render(request, 'services/service_detail_ajax.html', {'service': service})
+    
+    return render(request, 'services/service_detail_ajax.html', {
+        'service': service,
+        'price': service.price,
+        'completion_time': service.completion_time,
+        'guarantee': guarantee
+    })
 
 
 @login_required
@@ -83,7 +124,7 @@ def create_order(request, service_id):
         return redirect('orders/history')
     except Exception as e:
         logger.error(f"Error creating order for service {service_id}: {e}")
-        return redirect('services:service_list')
+        return redirect('services/service_list')
 
 
 @login_required

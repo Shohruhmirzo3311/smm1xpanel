@@ -18,6 +18,7 @@ class OrderAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name',)# Foydalanuvchidan qo'shimcha summa olish uchun forma
 
+    
 class AddFundsForm(forms.Form):
     amount = forms.DecimalField(label='Qo\'shmoqchi bo\'lgan summa', min_value=0.01)
 

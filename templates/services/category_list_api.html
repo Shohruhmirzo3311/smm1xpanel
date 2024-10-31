@@ -1,0 +1,11 @@
+<!-- templates/services/category_list_api.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Kategoriyalar</h1>
+    <ul>
+        {% for category in categories %}
+            <li>{{ category.name }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
