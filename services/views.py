@@ -58,6 +58,7 @@ def service_list(request):
     instagram_services = Service.objects.filter(category__name="Instagram")
     
     context = {
+        'categories': categories,
         'youtube_services': youtube_services,
         'telegram_services': telegram_services,
         'instagram_services': instagram_services,
