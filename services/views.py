@@ -3,17 +3,21 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Service, Order, Category, Balance, Platform
+from rest_framework.pagination import PageNumberPagination
+from .models import Service, Order, Category, Balance, UserBalance, Platform
 from .serializers import ServiceSerializer,CategorySerializer, OrderSerializer
-from django.utils import timezone
-from django.contrib.auth.models import User
 from django.core.cache import cache
 import logging
 logger = logging.getLogger(__name__)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import requests
-from django.http import JsonResponse
+from django.http import HttpResponse
+from rest_framework.decorators import api_view
+import decimal
+from decimal import Decimal
+from django.contrib import messages
+
 
 # Logger yaratish
 logger = logging.getLogger(__name__)
@@ -29,7 +33,7 @@ def get_guarantee_from_api(service_id):
         dict: Kafolat ma'lumotlari yoki None.
     """
     # API manzilini o'rnating
-    url = f"http://your_api_url/guarantee/{service_id}/"  # O'zgartirish talab qilinadi
+    url = f"http://localhost:8000/api/guarantee/{service_id}/"
 
     try:
         # API ga so'rov yuborish
@@ -48,25 +52,34 @@ def get_guarantee_from_api(service_id):
         return None  # Agar xato bo'lsa, None qaytarish
 
 
-# HTML-based views
+# logger = logging.getLogger(__name__)
+
+# def service_list(request):
+#     categories = Category.objects.prefetch_related('service_set').all()
+#     all_services = Service.objects.all()
+#     context = {
+#         'categories': categories,
+#         'services': all_services,
+#     }
+#     return render(request, 'services/service_list.html', context)
+
+
 def service_list(request):
     categories = Category.objects.prefetch_related('service_set').all()
+    all_services = Service.objects.all()
+    
+    query = request.GET.get('q')
+    if query:
+        all_services = all_services.filter(name__icontains=query)
 
-
-    youtube_services = Service.objects.filter(category__name="YouTube")
-    telegram_services = Service.objects.filter(category__name="Telegram")
-    instagram_services = Service.objects.filter(category__name="Instagram")
+    logger.info(f"Total services found: {all_services.count()}")
     
     context = {
         'categories': categories,
-        'youtube_services': youtube_services,
-        'telegram_services': telegram_services,
-        'instagram_services': instagram_services,
+        'services': all_services,
     }
     return render(request, 'services/service_list.html', context)
 
-
-logger = logging.getLogger(__name__)
 
 class category_list_api(APIView):
     def get(self, request, platform_name):
@@ -77,13 +90,50 @@ class category_list_api(APIView):
             serializer = CategorySerializer(categories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Platform.DoesNotExist:
+            logger.error('Platform not found')
             return Response({'error': 'Platform not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+# class category_list_api(APIView):
+#     def get(self, request, platform_name):
+#         logger.info(f"Platform name received: {platform_name}")
+#         try:
+#             platform = Platform.objects.get(name=platform_name)
+#             categories = Category.objects.filter(service__platform=platform)
+#             serializer = CategorySerializer(categories, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Platform.DoesNotExist:
+#             logger.error('Platform not found')
+#             return Response({'error': 'Platform not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10  # Set your desired page size
+    page_size_query_param = 'page_size'  # Allows the client to set the page size
+    max_page_size = 100  # Limit the maximum page size
+
+
+@api_view(['GET'])
 def service_list_api(request):
-    services = Service.objects.select_related('category').all().values(
-        'id', 'name', 'description', 'completion_time', 'order_speed', 'category__name'
-    )
-    return JsonResponse(list(services), safe=False)
+    services = Service.objects.select_related('category').all()
+    print(f"Services found: {services.count()}")
+    paginator = CustomPagination()
+    paginated_services = paginator.paginate_queryset(services, request)
+    
+    serializer = ServiceSerializer(paginated_services, many=True)
+    logger.info(f"Paginated services: {serializer.data}") 
+    return paginator.get_paginated_response(serializer.data)
+
+
+# @api_view(['GET'])
+# def service_list_api(request):
+#     services = Service.objects.select_related('category').all()
+#     print(f"Services found: {services.count()}")
+#     paginator = CustomPagination()
+#     paginated_services = paginator.paginate_queryset(services, request)
+    
+#     serializer = ServiceSerializer(paginated_services, many=True)
+#     return paginator.get_paginated_response(serializer.data)
 
 
 class CategoryList(APIView):
@@ -95,6 +145,17 @@ class CategoryList(APIView):
 
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
+
+
+# class CategoryList(APIView):
+#     def get(self, request, platform=None):
+#         if platform and platform != 'all':
+#             categories = Category.objects.filter(platform=platform)  # platformga mos keluvchi kategoriyalar
+#         else:
+#             categories = Category.objects.all()  # Barcha kategoriyalar
+
+#         serializer = CategorySerializer(categories, many=True)
+#         return Response(serializer.data)
     
 @login_required
 def service_detail_ajax(request, service_id):
@@ -115,18 +176,40 @@ def service_detail_ajax(request, service_id):
         'guarantee': guarantee
     })
 
-
+# Yangi versiya
 @login_required
 def create_order(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    total_price = Decimal(service.price)
+
     try:
-        service = get_object_or_404(Service, id=service_id)
-        order = Order.objects.create(user=request.user, service=service)
+        user_balance = UserBalance.objects.get(user=request.user)
+
+        if user_balance.balance < total_price:
+            messages.error(request, "Hisobingizda yetarli mablag' mavjud emas.")
+            return redirect('services:service_list')  # To'liq nomdan foydalanish
+
+        order = Order.objects.create(
+            user=request.user,
+            service=service,
+            total_price=total_price
+        )
+
+        user_balance.balance -= total_price
+        user_balance.save()
+
+        messages.success(request, "Buyurtma muvaffaqiyatli yaratildi.")
         logger.info(f"Order created: {order.id} for user: {request.user.id}")
-        return redirect('orders/history')
+        return redirect('services:history')  # To'liq nomdan foydalanish
+        
+    except UserBalance.DoesNotExist:
+        messages.error(request, "Hisobingiz topilmadi. Iltimos, hisobingizni to'ldiring.")
+        return redirect('services:service_list')  # To'liq nomdan foydalanish
+        
     except Exception as e:
         logger.error(f"Error creating order for service {service_id}: {e}")
-        return redirect('services/service_list')
-
+        messages.error(request, "Buyurtma yaratishda xato yuz berdi. Iltimos, qaytadan urinib ko'ring.")
+        return redirect('services:service_list')  # To'liq nomdan foydalanish
 
 @login_required
 def order_history(request):
@@ -136,6 +219,7 @@ def order_history(request):
 
 @login_required
 def balance_view(request):
+    
     if request.user.is_authenticated:
         try:
             balance = Balance.objects.get(user=request.user)
@@ -148,10 +232,26 @@ def balance_view(request):
         return redirect('user:login')
 
 
-@login_required  # Foydalanuvchini autentifikatsiya qilish
+logger = logging.getLogger(__name__)
+
+
+def update_balance(user, amount):
+    try:
+        # Balansni olish
+        balance = Balance.objects.get(user=user)
+
+        # Balansni yangilash
+        balance.balance = Decimal(balance.balance) + Decimal(amount)  # float bo'lsa, to'g'ridan-to'g'ri decimal ga aylantirish
+        balance.save()  # O'zgarishlarni saqlash
+        logger.info(f"Balance updated for user: {user.id}, new balance: {balance.balance}")
+
+    except Balance.DoesNotExist:
+        logger.warning(f"Cannot update balance, not found for user: {user.id}")
+        raise ValueError("Balans topilmadi, yangilanish amalga oshirilmadi.")
+
+@login_required
 def top_up_balance(request):
     site_card_number = "1234 5678 9012 3456"  # Saytning karta raqami
-
     return render(request, 'services/balance/top_up.html', {'site_card_number': site_card_number})
 
 
@@ -183,3 +283,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+def update_service_price(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    service.update_price()  # Modeldagi update_price funksiyasini chaqirish
+    return HttpResponse(f"{service.name} narxi yangilandi.")

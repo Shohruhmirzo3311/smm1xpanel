@@ -20,12 +20,12 @@ class UserBalance(models.Model):
         return f"{self.user.username} balansi: {self.balance}"
 
     def update_balance(self, amount):
-        self.balance += decimal.Decimal(amount)
+        # amount ni Decimal ga aylantirish
+        self.balance += Decimal(amount)  # amount ni Decimal ga aylantiramiz
         self.save()
     
     def has_sufficient_balance(self, amount):
-        return self.balance >= decimal.Decimal(amount)
-
+        return self.balance >= Decimal(amount)
 
 class Platform(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -159,45 +159,53 @@ class Service(models.Model):
     order_speed = models.IntegerField(default=0)
     # ...
     def save(self, *args, **kwargs):
-    # Agar self.base_price hali aniqlanmagan bo'lsa, 0 yoki boshqa mos qiymatni dastlabki sifatida belgilab olish
         if self.base_price is None:
             self.base_price = Decimal('0.00')
-
-        # Narxni 30% foyda bilan hisoblash
         self.price = self.base_price * Decimal('1.3')
-    
-    # Agar completion_time qiymati hali aniqlanmagan bo'lsa, uni dastlabki 60 daqiqa deb belgilash
+            
         if not self.completion_time:
             self.completion_time = 60
 
         super().save(*args, **kwargs)
 
+    
     def update_price(self):
         """
         Narxni tashqi API orqali yangilash funksiyasi.
         """
-        # Tashqi API URL manzili va kerakli parametrlar
-        api_url = "https://api.example.com/get_service_price"
-        params = {
-            'service_name': self.name,
-            'platform': self.platform,
-            'category': self.category.name,
-        }
+        # Har bir platforma uchun mos URL va tokenlar
+        if self.platform.name == "YouTube":
+            api_url = "https://youtube.googleapis.com/youtube/v3/videos"
+            token = settings.YOUTUBE_TOKEN
+        elif self.platform.name == "Instagram":
+            api_url = "https://graph.instagram.com/me/media"
+            token = settings.INSTAGRAM_TOKEN
+        elif self.platform.name == "Telegram":
+            api_url = "https://api.telegram.org/bot{}/getUpdates".format(settings.TELEGRAM_TOKEN)
+            token = settings.TELEGRAM_TOKEN
+        else:
+            print("Not supported platform")
+            return
+
         headers = {
-            'Authorization': f"Bearer {settings.EXTERNAL_API_TOKEN}",
+            'Authorization': f"Bearer {token}",
             'Content-Type': 'application/json'
         }
-        
+
+        params = {
+            'service_name': self.name,
+            'platform': self.platform.name,
+            'category': self.category.name,
+        }
+
         try:
             response = requests.get(api_url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
 
-            # API'dan narxni olish
-            new_base_price = decimal.Decimal(data.get("base_price"))
+            new_base_price = decimal.Decimal(data.get("base_price", 0))
             profit_margin = decimal.Decimal('1.3')  # 30% foyda
 
-            # Narxni yangilash
             self.base_price = new_base_price
             self.price = new_base_price * profit_margin
             self.save()
@@ -207,7 +215,6 @@ class Service(models.Model):
         except (TypeError, ValueError) as e:
             print(f"API javobida kutilmagan qiymat: {e}")
 
-
     def __str__(self):
         return f"{self.name} ({self.platform})"
 
@@ -215,6 +222,7 @@ class Service(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     created_at = models.DateTimeField(auto_now_add=True)
     expected_completion_time = models.DateTimeField()
     is_completed = models.BooleanField(default=False)
@@ -258,11 +266,14 @@ class Balance(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def update_balance(self, amount):
-        self.amount += Decimal(str(amount))  # float ni Decimal ga aylantirish
+        self.amount += Decimal(str(amount))
+          # float ni Decimal ga aylantirish
+        self.balance +=amount
         self.save()
-
-    def __str__(self):
-        return f"{self.user.username} - {self.amount} so'm"
+    
+    def has_sufficient_balance(self, amount):
+        # amount ni Decimal ga aylantirish
+        return self.balance >= decimal.Decimal(amount)
 
 
 # Yana bir model qo'shilishi mumkin, masalan, cyber attackdan himoyalanish

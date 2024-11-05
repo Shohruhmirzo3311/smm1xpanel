@@ -31,6 +31,7 @@
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'services:service_list' %}">Xizmatlar</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'services:history' %}">Buyurtmalar tarixi</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'services:balance_view' %}">Balans</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'services:top_up_balance' %}">Balansni to'ldirish</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'user:logout' %}">Chiqish</a></li>
@@ -75,5 +76,7 @@
             }
         }
     </script>
+    
+
 </body>
 </html>

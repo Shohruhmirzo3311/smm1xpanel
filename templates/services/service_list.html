@@ -2,21 +2,23 @@
 {% load static %}
 
 {% block content %}
+{% csrf_token %}
+
 <!-- Karusel -->
-<div id="carouselExampleDark" class="carousel carousel-dark slide">
+<div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel">
   <div class="carousel-indicators">
     <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
     <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
     <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
   </div>
   <div class="carousel-inner">
-    <div class="carousel-item active" data-bs-interval="10000">
+    <div class="carousel-item active">
       <img src="{% static 'images/telegramlogo.png' %}" class="d-block w-100" alt="Telegram">
       <div class="carousel-caption d-none d-md-block">
         <h5>Telegram xizmatlari</h5>
       </div>
     </div>
-    <div class="carousel-item" data-bs-interval="2000">
+    <div class="carousel-item">
       <img src="{% static 'images/instagramlogo.jpeg' %}" class="d-block w-100" alt="Instagram">
       <div class="carousel-caption d-none d-md-block">
         <h5>Instagram xizmatlari</h5>
@@ -48,8 +50,6 @@
     <input type="text" id="searchInput" class="form-control" placeholder="Platforma yoki kategoriya bo'yicha qidirish">
   </div>
   
-  
-  <!-- Platforma tanlash -->
   <div class="mb-4">
     <label for="platformSelect">Platforma:</label>
     <select id="platformSelect" class="form-select">
@@ -60,38 +60,38 @@
     </select>
   </div>
   
-  
-  <!-- Kategoriyalar -->
   <div class="mb-4">
     <label for="categorySelect">Kategoriyalar:</label>
     <select id="categorySelect" class="form-select">
       <option value="all">Barchasi</option>
       {% for category in categories %}
-      <option value="{{ category.id }}">{{ category.name }}</option>  <!-- Kategoriyalar dinamik yuklanadi -->
+      <option value="{{ category.id }}">{{ category.name }}</option>
       {% endfor %}
     </select>
   </div>
   
-  <!-- Xizmat tanlash -->
   <div class="mb-4">
     <label for="serviceSelect">Xizmat tanlash:</label>
-    <select id="serviceSelect" class="form-select">
-      <option value="all">Barchasi</option>
-      <!-- Xizmatlar dinamik yuklanadi -->
-    </select>
+    <div class="d-flex">
+      <select id="serviceSelect" class="form-select me-2">
+        <option value="all">Barchasi</option>
+        {% for service in services %}
+        <option value="{{ service.id }}">{{ service.name }}</option>
+        {% endfor %}
+      </select>
+      <button id="detailButton" class="btn btn-primary" onclick="showServiceDetails()">Batafsil</button>
+    </div>
   </div>
   
-  <!-- URL qo'shish -->
   <div class="mb-4">
-    <label for="pageUrl">Xizmatni yuborish </label>
+    <label for="pageUrl">Xizmatni yuborish:</label>
     <input type="url" id="pageUrl" class="form-control" placeholder="Masalan, https://yourwebsite.com/">
   </div>
   
+  <button id="orderButton" class="btn btn-success mb-4">Buyurtma berish</button>
   
-  <!-- Dinamik Xizmatlar Ro'yxati -->
   <div class="row" id="serviceList"></div>
   
-  <!-- Xizmatlar tavsilotlari modal -->
   <div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -111,15 +111,49 @@
 </div>
 
 {% endblock %}
+
 {% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
+  $(document).ready(function(){
+    $('#searchInput').on('keyup', function() {
+      var query = $(this).val();
+      fetchServices(query); // Qidiruv maydoni o'zgarganda xizmatlarni yuklash
+    });
+    
+    $('#categorySelect').on('change', fetchServices); // Kategoriya o'zgarganda xizmatlarni yuklash
+    $('#platformSelect').on('change', fetchCategories); // Platforma o'zgarganda kategoriya yuklash
+    
+    // showServiceDetails funksiyasini aniqlash
+    window.showServiceDetails = function() {
+      const selectedServiceId = document.getElementById('serviceSelect').value;
+      
+      if (selectedServiceId === "all") {
+        alert("Iltimos, xizmat tanlang.");
+        return;
+      }
+      
+      window.location.href = `/service/${selectedServiceId}/`; // URLni loyihangizga moslang
+    };
+
+    // Buyurtma berish tugmasiga voqea qo'shish
+    $('#orderButton').on('click', function() {
+      const selectedServiceId = $('#serviceSelect').val();
+      if (selectedServiceId === "all") {
+        alert("Iltimos, xizmat tanlang.");
+        return;
+      }
+      placeOrder(selectedServiceId);
+    });
+  });
+  
   const platformSelect = document.getElementById('platformSelect');
   const categorySelect = document.getElementById('categorySelect');
-  const serviceSelect = document.getElementById('serviceSelect');
-  const searchInput = document.getElementById('searchInput');
+  let services = []; // Servislar ro'yxatini saqlash
   
-  // Kategoriyalarni yuklash
   platformSelect.addEventListener('change', fetchCategories);
+  categorySelect.addEventListener('change', fetchServices);
   
   async function fetchCategories() {
     const platform = platformSelect.value;
@@ -127,14 +161,10 @@
     
     try {
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
       const categories = await response.json();
       populateCategories(categories);
-      fetchServices();
     } catch (error) {
-      console.error('Kategoriyalarni yuklashda xatolik:', error);
+      console.error('Error loading categories:', error);
     }
   }
   
@@ -148,94 +178,94 @@
     });
   }
   
-  // Kategoriyani tanlaganda xizmatlarni yuklash
-  categorySelect.addEventListener('change', fetchServices);
-  
-  
-  // Xizmatlarni yuklash funksiyasi
-  async function fetchServices() {
-    let searchTerm = searchInput.value; // Agar qidiruv maydoni bo'lsa
-    let platform = platformSelect.value; // Platforma tanlovidan qiymat
-    let category = categorySelect.value; // Kategoriya tanlovidan qiymat
-    let url = `/api/services/?platform=${platform}&category=${category}&search=${searchTerm}`; // API URL
+  async function fetchServices(query = '') {
+    let searchParams = new URLSearchParams({
+      platform: platformSelect.value !== 'all' ? platformSelect.value : '',
+      category: categorySelect.value !== 'all' ? categorySelect.value : '',
+      search: query
+    });
+    
+    const url = `/api/services/?${searchParams}`;
     
     try {
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      const services = await response.json();
-      displayServices(services); // DOM ni yangilash
-      populateServiceSelect(services); // Xizmatlarni tanlash ro'yxatiga yuklash
+      services = await response.json();
+      displayServices(services);
     } catch (error) {
       console.error('Error loading services:', error);
     }
   }
   
-  // Xizmat tanlash uchun dinamik ro'yxatni to'ldirish
-  function populateServiceSelect(services) {
-    const serviceSelect = document.getElementById('serviceSelect');
-    serviceSelect.innerHTML = '<option value="all">Barchasi</option>'; // Barchasi opsiyasi
-    services.forEach(service => {
-      const option = document.createElement("option");
-      option.value = service.id; // Xizmatning ID sini opsiya qiymati sifatida
-      option.textContent = service.name; // Xizmat nomini opsiya matni sifatida
-      serviceSelect.appendChild(option); // Opsiyani tanlovga qo'shish
-    });
-  }
-  
-  // Dastlabki xizmatlarni yuklash
-  fetchServices();
-  
-  
-  // Xizmatlar ro'yxatini ko'rsatish
   function displayServices(services) {
-    const serviceList = document.getElementById("serviceList");
-    serviceList.innerHTML = "";
+    const serviceList = document.getElementById('serviceList');
+    serviceList.innerHTML = '';
+    
     services.forEach(service => {
-      const serviceItem = document.createElement("div");
-      serviceItem.classList.add("col-md-4", "mb-4");
-      serviceItem.innerHTML = `
-        <div class="card">
+      const serviceCard = document.createElement('div');
+      serviceCard.classList.add('col-md-4');
+      serviceCard.innerHTML = `
+        <div class="card mb-4">
           <div class="card-body">
             <h5 class="card-title">${service.name}</h5>
             <p class="card-text">${service.description}</p>
-            <small>Bajarilish vaqti: ${service.completion_time} daqiqa</small><br>
-            <strong>Narx:</strong> ${service.price} so‘m<br>
-            <button class="btn btn-primary btn-details" data-service-id="${service.id}">Batafsil</button>
+            <p class="card-text"><strong>Narx:</strong> ${service.price} so‘m</p>
+            <button class="btn btn-primary" onclick="openServiceDetail(${service.id})">Batafsil</button>
           </div>
         </div>
       `;
-      serviceList.appendChild(serviceItem);
+      serviceList.appendChild(serviceCard);
     });
   }
   
-  
-  // Xizmat tafsilotlarini modalda ko'rsatish
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('btn-details')) {
-      const serviceId = e.target.getAttribute('data-service-id');
-      showServiceDetails(serviceId);
-    }
-  });
-  
-  async function showServiceDetails(serviceId) {
-    try {
-      const response = await fetch(`/api/services/${serviceId}/`);
-      const service = await response.json();
-      
+  function openServiceDetail(serviceId) {
+    const service = services.find(s => s.id === serviceId);
+    if (service) {
       document.getElementById('serviceName').textContent = service.name;
       document.getElementById('serviceDescription').textContent = service.description;
-      document.getElementById('serviceCompletionTime').textContent = `Bajarilish vaqti: ${service.completion_time} daqiqa`;
       document.getElementById('servicePrice').textContent = service.price;
-      
-      const serviceDetailModal = new bootstrap.Modal(document.getElementById('serviceDetailModal'));
-      serviceDetailModal.show();
-    } catch (error) {
-      console.error('Xizmat tafsilotlarini ko‘rsatishda xatolik:', error);
+      document.getElementById('serviceCompletionTime').textContent = service.completion_time;
+      const modal = new bootstrap.Modal(document.getElementById('serviceDetailModal'));
+      modal.show();
     }
   }
   
-  // Qidiruv bo'yicha xizmatlarni filtrlash
-  searchInput.addEventListener('input', fetchServices);
+  async function placeOrder(serviceId) {
+    try {
+      const response = await fetch(`/api/orders/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'), // CSRF tokenni olish
+        },
+        body: JSON.stringify({ service_id: serviceId }),
+      });
+      if (response.ok) {
+        alert('Buyurtma muvaffaqiyatli amalga oshirildi!');
+        fetchServices(); // Buyurtma tugagandan keyin xizmatlarni yangilang
+      } else {
+        const errorData = await response.json();
+        alert(`Xatolik: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+    }
+  }
+
+  // CSRF tokenni olish
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 </script>
 {% endblock %}

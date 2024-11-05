@@ -20,11 +20,8 @@ from django.db import IntegrityError
 from .forms import UserRegistrationForm
 import re
 from django.contrib.auth.forms import PasswordResetForm
-from datetime import datetime
 from django.http import JsonResponse    
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
-
 
 User = get_user_model()
 
@@ -40,10 +37,7 @@ def send_verification_email(request, user_email, verification_code):
             server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
             server.sendmail(settings.EMAIL_HOST_USER, user_email, full_email)
     except Exception as e:
-        messages.error(request, "Email yuborishda xatolik yuz berdi.")
-
-
-
+        messages.error(request, "Email yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
 
 def register(request):
     if request.method == 'POST':
@@ -54,8 +48,14 @@ def register(request):
             password1 = form.cleaned_data['password1']
             email = form.cleaned_data['email']
 
+            # Foydalanuvchi nomini mavjudligini tekshirish
             if User.objects.filter(username=username).exists():
-                messages.error(request, 'Bu foydalanuvchi nomi allaqachon mavjud. Iltimos, boshqa nom tanlang.')
+                # Bu xabarni ko'rsatish uchun form ni qayta to'ldirish
+                form.add_error('username', 'Bu foydalanuvchi nomi allaqachon mavjud')
+                return render(request, 'user/register.html', {'form': form})
+
+            if not is_password_strong(password1):
+                messages.error(request, "Parol kamida 8 ta belgidan iborat bo'lishi va katta harf, kichik harf, raqam va maxsus belgi o'z ichiga olishi kerak.")
                 return render(request, 'user/register.html', {'form': form})
 
             try:
@@ -70,56 +70,103 @@ def register(request):
                 request.session['verification_time'] = timezone.now().isoformat()
 
                 messages.success(request, 'Ro\'yxatdan o\'tishingiz muvaffaqiyatli yakunlandi! Iltimos, emailni tekshiring.')
+                
                 return JsonResponse({'status': 'success', 'message': 'Ro\'yxatdan o\'tish muvaffaqiyatli'})
+                # return redirect('user:verify_email')
             except IntegrityError as e:
-                messages.error(request, f'Foydalanuvchi yaratishda xatolik yuz berdi: {str(e)}')
+                pass               
+
+        else:
+                
+                print(form.errors)
+                # message = messages.error(request, f'Foydalanuvchi yaratishda xatolik yuz berdi: {}')
+                
+                return render(request, 'user/register.html', {'message': form.errors})
 
     else:
         form = UserRegistrationForm()
     return render(request, 'user/register.html', {'form': form})
 
 
+# def verify_email(request):
+#     user_email = request.session.get('user_email')
+
+#     if request.method == 'POST':
+#         verification_code = request.POST.get('verification_code')
+#         # Tasdiqlash kodini tekshirish lozim. O'zingizga mos kodni oling.
+#         expected_code = '1234'  # O'zgartiring yoki dinamik qilish
+#         if verification_code == expected_code:  # Kodni tekshirish
+#             messages.success(request, 'Sizning hisobingiz tasdiqlandi!')
+#             return redirect('services:service_list')  # Tasdiqlashdan so'ng login sahifasiga o'ting
+#         else:
+#             messages.error(request, 'Noto\'g\'ri tasdiqlash kodi.')
+
+#     return render(request, 'user/verify_email.html', {'email':user_email})  # Tasdiqlash sahifasini ko'rsatish
+
+
 
 def verify_email(request):
+    # Retrieve or generate the verification code
+    user_email = request.session.get('user_email')
+    if not user_email:
+        messages.error(request, "Email manzili topilmadi.")
+        return redirect('some_other_page')  # Add a valid redirect if email not found in session
+
+    # Generate a random 4-digit code if not stored
+    if 'expected_code' not in request.session:
+        expected_code = str(random.randint(1000, 9999))
+        request.session['expected_code'] = expected_code
+
+        # Send the code to the user's email
+        send_mail(
+            subject='Email Tasdiqlash Kodingiz',
+            message=f'Sizning tasdiqlash kodingiz: {expected_code}',
+            from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+            recipient_list=[user_email],
+            fail_silently=False,
+        )
+        messages.info(request, "Tasdiqlash kodi email manzilingizga yuborildi.")
+
     if request.method == 'POST':
+        # Get the verification code entered by the user
         verification_code = request.POST.get('verification_code')
-        expected_code = request.session.get('verification_code')
-        verification_time = request.session.get('verification_time')
+        expected_code = request.session.get('expected_code')
 
-        if verification_time:
-            verification_time = parse_datetime(verification_time)
+        if verification_code == expected_code:
+            messages.success(request, 'Sizning hisobingiz tasdiqlandi!')
+            # Clear the session code to prevent reuse
+            del request.session['expected_code']
+            return redirect('user:login')  # Redirect to desired page
+        else:
+            messages.error(request, 'Noto\'g\'ri tasdiqlash kodi.')
 
-            # Tasdiqlash kodi to‘g‘ri va vaqti o‘tmaganligini tekshirish
-            if verification_code == expected_code and timezone.now() - verification_time < timedelta(minutes=10):
-                messages.success(request, 'Sizning hisobingiz tasdiqlandi!')
-                user_email = request.session.get('user_email')
-                try:
-                    user = User.objects.get(email=user_email)
-                    user.email_verified = True
-                    user.save()
-                    del request.session['verification_code']
-                    del request.session['user_email']
-                    del request.session['verification_time']
-                    return redirect('services:service_list')  # Bu yerda to‘g‘ri URLdan foydalaning
-                except User.DoesNotExist:
-                    messages.error(request, 'Foydalanuvchi topilmadi.')
+    return render(request, 'user/verify_email.html', {'email': user_email})
+
+
+
+
+
+
+
+def login_view(request):
+    if request.method == 'POST':
+        form = UserLoginForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('services:service_list')
             else:
-                messages.error(request, 'Tasdiqlash kodi noto‘g‘ri yoki muddati o‘tgan.')
-    return render(request, 'user/verify_email.html')
+                messages.error(request, 'Noto‘g‘ri login yoki parol.')
+        else:
+            messages.error(request, 'Noto‘g‘ri login yoki parol.')
+    else:
+        form = UserLoginForm()
 
-def is_password_strong(password):
-    # Parol uchun murakkablik shartlari
-    if len(password) < 8:
-        return False
-    if not re.search(r"[A-Z]", password):  # Katta harf
-        return False
-    if not re.search(r"[a-z]", password):  # Kichik harf
-        return False
-    if not re.search(r"[0-9]", password):  # Raqam
-        return False
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):  # Maxsus belgi
-        return False
-    return True
+    return render(request, 'user/login.html', {'form': form})
 
 
 # Parolni tiklash uchun
@@ -142,36 +189,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'user/password_reset_complete.html'
 
-# login_view
-def login_view(request):
-    next_url = request.GET.get('next')
-
-    if request.method == 'POST':
-        form = UserLoginForm(data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-
-            # Foydalanuvchini autentifikatsiya qilish
-            user = authenticate(username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                return redirect( 'services:service_list')
-            else:
-                messages.error(request, 'Noto\‘g\‘ri login yoki parol.')
-        else:
-            messages.error(request, 'Noto‘g\‘ri login yoki parol.')
-    else:
-        form = UserLoginForm()
-
-    return render(request, 'user/login.html', {'form': form})
-
-
-
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
 
 def home(request):
     if request.method == 'POST':
@@ -211,6 +228,21 @@ def home(request):
         'faqs': faqs  # FAQ ro'yxatini konteksta qo'shamiz
     }
     return render(request, 'user/home.html', context)
+
+
+def is_password_strong(password):
+    # Parol uchun murakkablik shartlari
+    if len(password) < 8:
+        return False
+    if not re.search(r"[A-Z]", password):  # Katta harf
+        return False
+    if not re.search(r"[a-z]", password):  # Kichik harf
+        return False
+    if not re.search(r"[0-9]", password):  # Raqam
+        return False
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):  # Maxsus belgi
+        return False
+    return True
 
 
 def logout_view(request):

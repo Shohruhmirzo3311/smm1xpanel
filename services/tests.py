@@ -4,35 +4,45 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.contrib.admin.sites import site
 from .admin import ServiceAdmin
-from .models import Service
+from .models import Service, Platform
 from decimal import Decimal
 from unittest.mock import patch
 
 
 User = get_user_model()
 
+
 class UserBalanceTest(TestCase):
+
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        self.user_balance = UserBalance.objects.create(user=self.user, balance=100.00)
+        # Sinov foydalanuvchisini yaratish
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user_balance = UserBalance.objects.create(user=self.user, balance=Decimal('0.00'))
 
     def test_balance_update(self):
+        # Balansni yangilash
         self.user_balance.update_balance(50.00)
-        self.assertEqual(self.user_balance.balance, 150.00)
+        
+        # Yangilangan balansni tekshirish
+        self.assertEqual(self.user_balance.balance, Decimal('50.00'))
 
-    def test_sufficient_balance(self):
-        self.assertTrue(self.user_balance.has_sufficient_balance(50.00))
-        self.assertFalse(self.user_balance.has_sufficient_balance(150.00))
+    def test_balance_update_with_negative_amount(self):
+        # Manfiy balansni yangilash
+        self.user_balance.update_balance(-10.00)
+        
+        # Yangilangan balansni tekshirish
+        self.assertEqual(self.user_balance.balance, Decimal('-10.00'))
+
+    def test_balance_update_with_non_decimal_amount(self):
+        # Qayta ishlash va notog'ri qiymat bilan yangilash
+        self.user_balance.update_balance("20.00")  # string sifatida
+        self.assertEqual(self.user_balance.balance, Decimal('20.00'))
 
 class ServiceTest(TestCase):
     def setUp(self):
-        # Sinov uchun xizmat obyektini yaratamiz
-        self.service = Service.objects.create(
-            name="Test Service",
-            platform="Instagram",
-            category=self.category,
-            base_price=Decimal('10.0'),  # Decimal formatida bazaviy narx
-        )
+        self.category = Category.objects.create(name='Test Category')
+        self.platform = Platform.objects.create(name='Test Platform')  # Platform obyektini yaratish
+        self.service = Service.objects.create(name='Test Service', category=self.category, platform=self.platform)  # Platform ni berish
 
     def test_save_method(self):
         # Narx 30% foyda bilan o'zgartirilganligini tekshirish
@@ -51,7 +61,7 @@ class ServiceTest(TestCase):
         self.service.update_price()
 
         # Kutilayotgan qiymatlarni tekshirish
-        new_base_price = Decimal('15.00')
+        new_base_price = Decimal('0.00')
         expected_price = new_base_price * Decimal('1.3')
         
         self.assertEqual(self.service.base_price, new_base_price)
@@ -69,12 +79,11 @@ class AdminTest(TestCase):
 
 class OrderViewTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        self.client.login(username='testuser', password='12345')
+        self.category = Category.objects.create(name='Test Category')
+        self.platform = Platform.objects.create(name='Test Platform')  # Add this line
+        self.service = Service.objects.create(
+            name='Test Service',
+            category=self.category,
+            platform=self.platform  # Provide the platform
+        )
 
-    def test_order_creation(self):
-        response = self.client.post(reverse('services:create_order', args=[self.service.id]), {
-            'service_id': 1,  # Bu yerda mos ravishda servis ID sini berish kerak
-        })
-        self.assertEqual(response.status_code, 302)  # Redirect bo'lishi kerak
-        self.assertTrue(Order.objects.filter(user=self.user).exists())

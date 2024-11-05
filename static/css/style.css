@@ -115,6 +115,32 @@ a:hover {
     max-height: 10rem; /* Rasmning maksimal balandligi - 6 sm */
 }
 
+/* Jadvalning umumiy ko'rinishi */
+.table {
+    border-collapse: collapse; /* Chiziqlar orasidagi bo'shliqlarni yo'q qilish */
+}
+
+/* Jadvalning ustun chiziqlari */
+.table th, .table td {
+    border: 1px solid #dee2e6; /* Chiziq rangini belgilash */
+    padding: 12px; /* Ichki bo'shliqlar */
+}
+
+/* Hover effekti */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa; /* Oq rangda ko'rinish */
+}
+
+/* Ustunlarning ranglari */
+.table-light th {
+    background-color: #e9ecef; /* Yengil kulrang fon */
+}
+
+/* Jadvalni markazlashtirish */
+.table-responsive {
+    margin-top: 20px; /* Sahifaga yuqoridan bo'sh joy */
+}
+
 
 
 /* Responsive dizayn */

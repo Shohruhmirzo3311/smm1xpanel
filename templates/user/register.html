@@ -54,7 +54,7 @@
         .then(data => {
             if (data.status === 'success') {
                 alert(data.message);  // Muvaffaqiyatli xabar
-                window.location.href = "{% url 'services:service_list' %}";  // Xizmatlar ro'yxati sahifasiga yo'naltirish
+                window.location.href = "{% url 'user:verify_email' %}";  // Xizmatlar ro'yxati sahifasiga yo'naltirish
             } else {
                 alert(data.message);  // Xato xabar
             }

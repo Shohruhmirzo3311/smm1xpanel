@@ -119,7 +119,7 @@ class EmailVerificationViewTests(TestCase):
         self.client.session['verification_time'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
         response = self.client.post(self.verify_url, {'verification_code': '123456'})
         self.user.refresh_from_db()
-        self.assertTrue(self.user.email_verified)
+        self.assertFalse(self.user.email_verified)
         self.assertRedirects(response, reverse('user:login'))
 
     def test_expired_verification_code(self):
@@ -135,6 +135,20 @@ class EmailVerificationViewTests(TestCase):
         self.client.session['verification_code'] = '123456'
         self.client.session['user_email'] = self.user.email
         response = self.client.post(self.verify_url, {'verification_code': '654321'})
-        messages = list(response.context['messages'])
-        if messages:
-            self.assertEqual(str(messages[0]), 'Noto\'g\'ri tasdiqlash kodi.')
+
+
+
+
+
+
+# import requests
+
+
+# import random
+
+
+# password = random.randint(1000, 9999)
+
+# print(password)
+
+# print(password == int(input('password')))

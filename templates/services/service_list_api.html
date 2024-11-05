@@ -1,18 +1,20 @@
-<!-- templates/services/service_list_api.html -->
 {% extends 'base.html' %}
 
 {% block content %}
     <h1>Xizmatlar</h1>
-    <ul>
+    <div class="row" id="serviceList">
         {% for service in services %}
-            <li>
-                <strong>{{ service.name }}</strong><br>
-                <em>{{ service.category__name }}</em><br>
-                <p>{{ service.description }}</p>
-                <p>To'lov: {{ service.price }} so'm</p>
-                <p>Tamomlanish vaqti: {{ service.completion_time }}</p>
-                <a href="{% url 'services:service_detail_ajax' service.id %}">Batafsil</a>
-            </li>
+        <div class="col-md-4 mb-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ service.name }}</h5>
+              <p class="card-text">{{ service.description }}</p>
+              <small>Bajarilish vaqti: {{ service.completion_time }} daqiqa</small><br>
+              <strong>Narx:</strong> {{ service.price }} so‘m<br>
+              <button class="btn btn-primary btn-details" data-service-id="{{ service.id }}">Batafsil</button>
+            </div>
+          </div>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 {% endblock %}
