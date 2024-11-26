@@ -30,6 +30,24 @@
         <h5>YouTube xizmatlari</h5>
       </div>
     </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/tiktok.png' %}" class="d-block w-100" alt="YouTube">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Tik Tok xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/facebook.png' %}" class="d-block w-100" alt="YouTube">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Facebook xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/twitter.png' %}" class="d-block w-100" alt="YouTube">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Twitter xizmatlari</h5>
+      </div>
+    </div>
   </div>
   <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -45,11 +63,29 @@
 <div class="container mt-5">
   <h1 class="text-center mb-4">SMM Xizmatlar</h1>
   
-  <div class="mb-4">
-    <label for="searchInput">Qidiruv:</label>
-    <input type="text" id="searchInput" class="form-control" placeholder="Platforma yoki kategoriya bo'yicha qidirish">
-  </div>
   
+    <form method="get" action="{% url 'services:search' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    {% if services %}
+      <h2>Results</h2>
+      <ul>
+          {% for service in services %}
+              <li>
+                  <h5>{{ service.name }}</h5>
+                  <p>{{ service.description }}</p>
+              </li>
+          {% empty %}
+              <li>No services found matching your search.</li>
+          {% endfor %}
+      </ul>
+    {% else %}
+      <p>Start typing to search for services.</p>
+    {% endif %}
+      
   <div class="mb-4">
     <label for="platformSelect">Platforma:</label>
     <select id="platformSelect" class="form-select">
@@ -62,24 +98,25 @@
   
   <div class="mb-4">
     <label for="categorySelect">Kategoriyalar:</label>
-    <select id="categorySelect" class="form-select">
+    <select id="categorySelect" class="form-select" onchange="updateDetails()">
       <option value="all">Barchasi</option>
-      {% for category in categories %}
-      <option value="{{ category.id }}">{{ category.name }}</option>
-      {% endfor %}
+      {% for service in services %}
+            <option value="{{ service.category }}">{{ service.category }}</option>
+        {% endfor %}
     </select>
   </div>
   
   <div class="mb-4">
-    <label for="serviceSelect">Xizmat tanlash:</label>
+    <label for="detailsSelect">Xizmat tanlash:</label>
     <div class="d-flex">
-      <select id="serviceSelect" class="form-select me-2">
+      <select id="detailsSelect" class="form-select me-2">
         <option value="all">Barchasi</option>
         {% for service in services %}
-        <option value="{{ service.id }}">{{ service.name }}</option>
+            <option value="{{ service.category }}">{{ service.category }}</option>
         {% endfor %}
       </select>
-      <button id="detailButton" class="btn btn-primary" onclick="showServiceDetails()">Batafsil</button>
+      <button id="detailButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceDetailModal">Batafsil</button>
+
     </div>
   </div>
   
@@ -100,22 +137,50 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <h5 id="serviceName"></h5>
           <p id="serviceDescription"></p>
           <small id="serviceCompletionTime"></small><br>
-          <p><strong>Narx:</strong> <span id="servicePrice"></span> so‘m</p>
+          <p><strong>Narx: </strong> <span id="servicePrice"></span> so‘m</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-{% endblock %}
 
-{% block scripts %}
+
+
+
+<h1>---------------------------------------------------------------------</h1>
+
+
+
+
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+  
+  const details = {{ category_details|safe }};
+  
+    function updateDetails() {
+        // Get selected category
+        const category = document.getElementById("categorySelect").value;
+        const detailsSelect = document.getElementById("detailsSelect");
+        
+        // Clear the details dropdown
+        detailsSelect.innerHTML = '<option value="">-- Detallar --</option>';
+        
+        // Populate details dropdown based on selected category
+        if (category && details[category]) {
+          details[category].forEach(detail => {
+            const option = document.createElement("option");
+            option.value = detail;
+            option.textContent = detail;
+            detailsSelect.appendChild(option);
+          });
+        }
+    }
   $(document).ready(function(){
     $('#searchInput').on('keyup', function() {
       var query = $(this).val();
@@ -125,18 +190,6 @@
     $('#categorySelect').on('change', fetchServices); // Kategoriya o'zgarganda xizmatlarni yuklash
     $('#platformSelect').on('change', fetchCategories); // Platforma o'zgarganda kategoriya yuklash
     
-    // showServiceDetails funksiyasini aniqlash
-    window.showServiceDetails = function() {
-      const selectedServiceId = document.getElementById('serviceSelect').value;
-      
-      if (selectedServiceId === "all") {
-        alert("Iltimos, xizmat tanlang.");
-        return;
-      }
-      
-      window.location.href = `/service/${selectedServiceId}/`; // URLni loyihangizga moslang
-    };
-
     // Buyurtma berish tugmasiga voqea qo'shish
     $('#orderButton').on('click', function() {
       const selectedServiceId = $('#serviceSelect').val();
@@ -145,6 +198,16 @@
         return;
       }
       placeOrder(selectedServiceId);
+    });
+
+    // Batafsil xizmatni ko'rsatish
+    $('#detailButton').on('click', function() {
+      const selectedServiceId = $('#serviceSelect').val();
+      if (selectedServiceId === "all") {
+        alert("Iltimos, xizmat tanlang.");
+        return;
+      }
+      showServiceDetails(selectedServiceId);
     });
   });
   
@@ -198,74 +261,43 @@
   
   function displayServices(services) {
     const serviceList = document.getElementById('serviceList');
-    serviceList.innerHTML = '';
+    serviceList.innerHTML = ''; // Clear previous services
     
     services.forEach(service => {
       const serviceCard = document.createElement('div');
-      serviceCard.classList.add('col-md-4');
+      serviceCard.className = 'col-md-4 mb-4';
       serviceCard.innerHTML = `
-        <div class="card mb-4">
+      <div class="card">
+          <img src="${service.image}" class="card-img-top" alt="${service.name}">
           <div class="card-body">
             <h5 class="card-title">${service.name}</h5>
             <p class="card-text">${service.description}</p>
-            <p class="card-text"><strong>Narx:</strong> ${service.price} so‘m</p>
-            <button class="btn btn-primary" onclick="openServiceDetail(${service.id})">Batafsil</button>
-          </div>
-        </div>
-      `;
-      serviceList.appendChild(serviceCard);
-    });
-  }
-  
-  function openServiceDetail(serviceId) {
-    const service = services.find(s => s.id === serviceId);
-    if (service) {
-      document.getElementById('serviceName').textContent = service.name;
-      document.getElementById('serviceDescription').textContent = service.description;
-      document.getElementById('servicePrice').textContent = service.price;
-      document.getElementById('serviceCompletionTime').textContent = service.completion_time;
-      const modal = new bootstrap.Modal(document.getElementById('serviceDetailModal'));
-      modal.show();
-    }
-  }
-  
-  async function placeOrder(serviceId) {
-    try {
-      const response = await fetch(`/api/orders/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'), // CSRF tokenni olish
-        },
-        body: JSON.stringify({ service_id: serviceId }),
-      });
-      if (response.ok) {
-        alert('Buyurtma muvaffaqiyatli amalga oshirildi!');
-        fetchServices(); // Buyurtma tugagandan keyin xizmatlarni yangilang
-      } else {
-        const errorData = await response.json();
-        alert(`Xatolik: ${errorData.message}`);
-      }
-    } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
-    }
-  }
-
-  // CSRF tokenni olish
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
+            <button class="btn btn-info" onclick="showServiceDetails(${service.id})">Batafsil</button>
+            </div>
+            </div>
+            `;
+            serviceList.appendChild(serviceCard);
+          });
         }
-      }
-    }
-    return cookieValue;
+  
+        // Show service details in a modal
+  function showServiceDetails(serviceId) {
+  const service = services.find(s => s.id === serviceId);
+  if (service) {
+    console.log(service);  // Add this to debug and check if the data is correct
+    document.getElementById('serviceName').textContent = service.name;
+    document.getElementById('serviceDescription').textContent = service.description;
+    document.getElementById('serviceCompletionTime').textContent = `Tugatish vaqti: ${service.completion_time}`;
+    document.getElementById('servicePrice').textContent = service.price ? service.price : 'N/A';
+    // Modalni ko'rsatish
+    $('#serviceDetailModal').modal('show');
   }
+}
+
+
+function placeOrder(serviceId) {
+  alert("Buyurtma muvaffaqiyatli yuborildi.");
+}
 </script>
+
 {% endblock %}

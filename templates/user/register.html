@@ -1,66 +1,149 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    {{ form|crispy }}  <!-- Using crispy forms to render the form nicely -->
-    <button type="submit">Ro'yxatdan o'tish</button>
-</form>
-
-<script>
-    function togglePasswordVisibility(inputId) {
-        const input = document.getElementById(inputId);
-        input.type = input.type === 'password' ? 'text' : 'password';
+<style>
+    /* General form styling */
+    .registration-form {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    // Cookie'ni olish uchun funksiya
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+    h2 {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    /* Button styling */
+    .btn-submit {
+        width: 100%;
+        padding: 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: #410eb6;
+    }
+
+    /* Error message styling */
+    #error-messages {
+        margin-bottom: 20px;
+        color: #e74c3c;
+        font-size: 14px;
+    }
+
+    #error-messages div {
+        margin-bottom: 10px;
+    }
+
+    /* Input field styling */
+    input[type="text"], input[type="email"], input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    ul {
+        display: none;
+    }
+
+    input[type="text"]:focus, input[type="phone_number"]:focus, input[type="password"]:focus {
+        border-color: #6411cf;
+        outline: none;
+    }
+</style>
+<div class="container">
+    <h2>Ro'yxatdan o'tish</h2>
+    <form method="post" class="registration-form">
+        {% csrf_token %}
+
+        <div id="error-messages"></div>
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn-submit">Ro'yxatdan o'tish</button>
+    </form>
+
+    <script>
+        // Display alert when the page loads
+        window.onload = function() {
+            alert("Parol kamida 8 ta belgidan iborat bo'lishi va katta harf, kichik harf, raqam va maxsus belgi o'z ichiga olishi kerak.");
+        };
+
+        // Function to toggle password visibility
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Function to get the CSRF token from the cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
 
-    // Formani yuborishni boshqarish
-    document.querySelector('form').addEventListener('submit', function(event) {
-        event.preventDefault();  // Formani yuborishni to'xtatish
+        // Handle form submission via AJAX
+        document.querySelector('form').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form from submitting normally
 
-        const formData = new FormData(this);  // Forma ma'lumotlarini olish
+            const formData = new FormData(this);  // Collect form data
+            const errorMessagesDiv = document.getElementById('error-messages');  // The div to show error messages
 
-        // AJAX so'rovini yuborish
-        fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            credentials: 'include',  // Cookie'larni yuborish
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',  // AJAX so'rovi ekanligini ko'rsatish
-                'X-CSRFToken': getCookie('csrftoken')  // CSRF tokenini olish
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');  // Tarmoq javobi notog'ri bo'lsa xato
-            }
-            return response.json();  // Javobni JSON formatida qaytarish
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);  // Muvaffaqiyatli xabar
-                window.location.href = "{% url 'user:verify_email' %}";  // Xizmatlar ro'yxati sahifasiga yo'naltirish
-            } else {
-                alert(data.message);  // Xato xabar
-            }
-        })
-        .catch(error => console.error('Error:', error));  // Xatolarni konsolga chiqarish
-    });
-</script>
+            // Clear any previous error messages
+            errorMessagesDiv.innerHTML = '';
 
+            // Send AJAX request
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include',  // Include cookies (useful for session)
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',  // Indicate it's an AJAX request
+                    'X-CSRFToken': getCookie('csrftoken')  // Get the CSRF token from cookies
+                }
+            })
+            .then(response => response.json())  // Expect a JSON response
+            .then(data => {
+                if (data.status === 'error') {
+                    // If errors are returned, display them in the error messages div
+                    for (const [field, errors] of Object.entries(data.errors)) {
+                        errors.forEach(error => {
+                            const errorMessage = document.createElement('div');
+                            errorMessage.textContent = ` ${error}`;
+                            errorMessagesDiv.appendChild(errorMessage);
+                        });
+                    }
+                } else if (data.status === 'success') {
+                    alert(data.message);  // Show success message
+                    window.location.href = "{% url 'user:login' %}";  // Redirect to the login page
+                }
+            })
+            .catch(error => console.error('Error:', error));  // Log any errors to the console
+        });
+    </script>
+</div>
 {% endblock %}

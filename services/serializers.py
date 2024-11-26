@@ -13,11 +13,17 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ['id', 'name', 'platform', 'completion_time', 'price']
+        fields = ['id', 'name', 'description', 'platform', 'completion_time', 'price']
 
     def get_price(self, obj):
-        # Narxni foydalanuvchiga 30% foyda bilan ko'rsatadi
-        return obj.base_price * 1.3
+        if obj.base_price:
+            return round(obj.base_price * 1.3, 2)  # Apply a 30% markup
+        return 0  # Return 0 or some default value if no base price is available
+
+
+    # def get_price(self, obj):
+    #     # Narxni foydalanuvchiga 30% foyda bilan ko'rsatadi
+    #     return obj.base_price * 1.3
 
 class OrderSerializer(serializers.ModelSerializer):
     service = ServiceSerializer(read_only=True)  # Narxni va xizmat haqida batafsil ma'lumotni qaytarish uchun

@@ -2,10 +2,31 @@
 
 {% block content %}
 <h2>Balansni to'ldirish</h2>
-<p> <strong>{{ site_card_number }}</strong></p>
 
-<form method="post">
+{% for card in cards %}
+<div style="margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+    <p><strong>Karta raqami:</strong> {{ card.number }}</p>
+    <p><strong>Karta egasi:</strong> {{ card.holder }}</p>
+</div>
+{% endfor %}
+
+<form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
+    {{ form.as_p }}
 </form>
+
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div>
+    <a href="https://t.me/paxtaobod_menejer" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+        Admin
+    </a>
+</div>
 
 {% endblock %}

@@ -3,15 +3,16 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import User
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
+from django.contrib import messages
+
 
 User = get_user_model()
 
 class UserRegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
+    
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['username', 'phone_number', 'password1', 'password2']
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -22,7 +23,7 @@ class UserRegistrationForm(UserCreationForm):
 
         # Password strength checks
         if len(password1) < 8:
-            raise ValidationError("Parol kamida 8 ta belgidan iborat bo'lishi kerak.")
+            raise ValidationError ("Parol kamida 8 ta belgidan iborat bo'lishi kerak.")
         if not any(char.isdigit() for char in password1):
             raise ValidationError("Parolda kamida bitta raqam bo'lishi kerak.")
         if not any(char.isupper() for char in password1):
@@ -50,3 +51,8 @@ class UserLoginForm(forms.Form):
             raise forms.ValidationError("Noto'g'ri login yoki parol.")
 
         return cleaned_data
+    
+
+
+
+

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Menu Example</title>
+</head>
+<body>
+    <label for="categorySelect">Bo'limni tanlang:</label>
+    <select id="categorySelect" onchange="updateDetails()">
+        <option value="">-- Tanlang --</option>
+
+        {% for service in services %}
+            <option value="{{ service.category }}">{{ service.category }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="detailsSelect">Detalni tanlang:</label>
+    <select id="detailsSelect">
+        <option value="">-- Detallar --</option>
+    </select>
+
+    <script>
+        // Pass category details from Django to JavaScript
+        const details = {{ category_details|safe }};
+
+        function updateDetails() {
+            // Get selected category
+            const category = document.getElementById("categorySelect").value;
+            const detailsSelect = document.getElementById("detailsSelect");
+
+            // Clear the details dropdown
+            detailsSelect.innerHTML = '<option value="">-- Detallar --</option>';
+
+            // Populate details dropdown based on selected category
+            if (category && details[category]) {
+                details[category].forEach(detail => {
+                    const option = document.createElement("option");
+                    option.value = detail;
+                    option.textContent = detail;
+                    detailsSelect.appendChild(option);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

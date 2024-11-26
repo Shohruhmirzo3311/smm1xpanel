@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% csrf_token %}
+
+<div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="{% static 'images/telegramlogo.png' %}" class="d-block w-100" alt="Telegram">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Telegram xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/instagramlogo.jpeg' %}" class="d-block w-100" alt="Instagram">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Instagram xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/youtube.png' %}" class="d-block w-100" alt="YouTube">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>YouTube xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/tiktok.png' %}" class="d-block w-100" alt="TikTok">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>TikTok xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/facebook.png' %}" class="d-block w-100" alt="Facebook">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Facebook xizmatlari</h5>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/twitter.png' %}" class="d-block w-100" alt="Twitter">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Twitter xizmatlari</h5>
+      </div>
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+{% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-danger" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="container mt-5">
+  <form action="" method="post">
+    {% csrf_token %}
+    <h1 class="text-center mb-4">SMM Xizmatlar</h1>
+    
+    
+    <div class="mb-4">
+        <label for="searchPlatform">Platforma:</label>
+        <div class="d-flex">
+            <select id="searchPlatform" class="form-select me-2" onchange="updateCategories()">
+                <option value="">Xizmatni tanlang</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Telegram">Telegram</option>
+                <option value="Twitter">Twitter</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Tiktok">Tiktok</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label for="categorySelect">Kategoriyalar:</label>
+        <select id="categorySelect" name="category" class="form-select" onchange="updateFields()">
+            <option value="">Barchasi</option>
+        </select>
+    </div>
+
+    <div class="mb-4">
+        <label for="detailsSelect">Xizmat tanlash:</label>
+        <div class="d-flex">
+            <select id="detailsSelect" class="form-select me-2" onchange="updatePrice()">
+                <option value="">Xizmatni tanlang</option>
+            </select>
+            <button id="detailButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceDetailModal">Batafsil</button>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label for="pageUrl">Xizmatni yuborish:</label>
+        <input type="url" required id="pageUrl" class="form-control" name="url" placeholder="Masalan, https://yourwebsite.com/">
+    </div>
+
+    <div class="mb-4" id="numberSelect">
+      <label for="number">Buyurtma miqdori</label>
+      <input type="number" required id="number" maxlength="6" required class="form-control" name="number" placeholder="" oninput="updatePrice()">
+    </div>
+    
+    <div class="mb-4" id="answer" style="display: none; flex-direction: column;">
+      <label for="answer">Javob:</label>
+      <input type="number"  id="answer"  class="form-control" name="answer" placeholder="javobni talang 1,2,3..." >
+    </div>
+
+    <div class="mb-4" id="comment" style="display: none; flex-direction: column;">
+      <label for="comment">Comment:</label>
+      <textarea name="comment" id="comment" style="min-height: 250px;"></textarea>
+    </div>
+
+    <div class="mb-4">  
+        <label for="totalPrice">Umumiy summa:</label>
+        <input type="text" id="totalPrice" class="form-control" name="total" placeholder="Umumiy summa" readonly disabled>
+    </div>
+
+    <input type="hidden" type="number" id="hiddenTotalPrice" name="total">
+
+    <button type="submit" class="btn btn-success mb-4">Buyurtma berish</button>
+  </form>  
+
+  <div class="modal fade" id="serviceDetailModal" tabindex="-1" aria-labelledby="serviceDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="serviceDetailModalLabel">Xizmat tavsilotlari</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="serviceDescription"></p>
+          <small id="serviceCompletionTime"></small><br>
+          <p><strong>Narx: </strong> <span id="servicePrice"></span> so‘m</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script type="">
+  const data = {};
+  {% for key, value in category_details.items %}
+      data["{{ key }}"] = [];
+      {% for service in value %}
+          data["{{ key }}"].push({
+              service: {
+                  category: "{{ service.category }}",
+                  service: "{{ service.service }}",
+                  name: "{{ service.name }}",
+                  min: "{{ service.min }}",
+                  max: "{{ service.max }}",
+                  rate: parseFloat("{{ service.rate }}")
+              }
+          });
+      {% endfor %}
+  {% endfor %}
+
+  function updateCategories() {
+
+      const platform = document.getElementById('searchPlatform').value;
+      const categorySelect = document.getElementById('categorySelect');
+      categorySelect.innerHTML = '<option value="">Barchasi</option>'; 
+
+      const categories = new Set();
+      if (platform && data[platform]) {
+          data[platform].forEach(item => categories.add(item.service.category));
+      }
+
+      categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category;
+          option.textContent = category;
+          categorySelect.appendChild(option);
+      });
+
+      updateFields(); 
+  }
+
+  function updateFields() {
+      const categorySelect = document.getElementById('categorySelect');
+      const detailsSelect = document.getElementById('detailsSelect');
+      detailsSelect.innerHTML = '<option value="">Xizmatni tanlang</option>';
+      const commentField = document.getElementById('comment');
+      const answerField = document.getElementById('answer');
+      const selectedPlatform = document.getElementById('searchPlatform').value;
+      const selectedCategory = categorySelect.value;
+
+      if (selectedPlatform && selectedCategory && data[selectedPlatform]) {
+          const filteredServices = data[selectedPlatform].filter(item => item.service.category === selectedCategory);
+          filteredServices.forEach(item => {
+              const option = document.createElement('option');
+              option.value = `${item.service.service}##${selectedCategory}`;
+              option.textContent = `${item.service.service} - ${ item.service.name}`;
+              detailsSelect.appendChild(option);
+
+
+              
+
+          });
+          commentField.style.display = 'none';  
+          answerField.style.display = 'none';  
+
+
+          if (selectedCategory.toLowerCase().includes('comment')) {
+                commentField.style.display = 'flex';  
+        } else if (selectedCategory.toLowerCase().includes('vote')) {
+            answerField.style.display = 'flex';  
+        } else {
+          commentField.style.display = 'none';  
+          answerField.style.display = 'none';  
+        }
+      }
+  }
+
+  function updatePrice() {
+      const serviceSelect = document.getElementById('detailsSelect');
+      const quantityInput = document.getElementById('number');
+      const totalPrice = document.getElementById('totalPrice');
+      const hiddenTotalPrice = document.getElementById('hiddenTotalPrice');
+
+      const [selectedService, category] = String(serviceSelect.value).split('##');
+      const platform = document.getElementById('searchPlatform').value;
+      const serviceDetails = JSON.stringify(data[platform].find(item => item.service.service === selectedService)?.service);
+      
+      if (serviceDetails) {
+          const service = JSON.parse(serviceDetails);
+          quantityInput.placeholder = `Minimal: ${service.min}, Maksimal: ${service.max}`; 
+          quantityInput.min = service.min; 
+          quantityInput.max = service.max; 
+      } else {
+          quantityInput.placeholder = "Miqdor kiriting"; 
+          quantityInput.min = ""; 
+          quantityInput.max = ""; 
+      }
+
+      if (serviceDetails && quantityInput.value) {
+          const service = JSON.parse(serviceDetails);
+          console.log();
+          
+          const rate = parseFloat(service.rate);
+          const quantity = parseFloat(quantityInput.value);
+
+          if (!isNaN(rate) && !isNaN(quantity)) {
+              const price = ((rate / 1000) * quantity);
+              const serviceCharge = (price / 100) * 40;  
+              const finalPrice = ((parseFloat(price) + serviceCharge) * 13000).toFixed(2); 
+              
+              totalPrice.value = `Umumiy summa: ${finalPrice} so'm`;
+              hiddenTotalPrice.value =` ${service.service}-${finalPrice}` ; 
+          } else {
+              console.error("Invalid rate or quantity.");
+              totalPrice.value = 'Umumiy summa: Noma’lum so\'m'; 
+              hiddenTotalPrice.value = ''; 
+          }
+      } else {
+          totalPrice.value = '';  
+          hiddenTotalPrice.value = ''; 
+      }
+  }
+  
+</script>
+
+{% endblock %}

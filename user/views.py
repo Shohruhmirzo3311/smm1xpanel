@@ -1,7 +1,9 @@
+
 import random
 import smtplib
 from datetime import timedelta  # Ensure timedelta is imported
 from django.conf import settings
+from aiogram import Bot
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from .forms import UserRegistrationForm, UserLoginForm
@@ -22,6 +24,12 @@ import re
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse    
 from django.utils import timezone
+from django.contrib.auth import login
+from django.contrib.auth import login
+from django.contrib.auth import get_backends
+
+
+
 
 User = get_user_model()
 
@@ -37,8 +45,8 @@ def send_verification_email(request, user_email, verification_code):
             server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
             server.sendmail(settings.EMAIL_HOST_USER, user_email, full_email)
     except Exception as e:
-        messages.error(request, "Email yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
-
+        pass
+        # messages.error(request, "Email yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -46,85 +54,69 @@ def register(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password1 = form.cleaned_data['password1']
-            email = form.cleaned_data['email']
+            phone_number = form.cleaned_data['phone_number']
 
-            # Foydalanuvchi nomini mavjudligini tekshirish
+            # Check if the username is already taken
             if User.objects.filter(username=username).exists():
-                # Bu xabarni ko'rsatish uchun form ni qayta to'ldirish
                 form.add_error('username', 'Bu foydalanuvchi nomi allaqachon mavjud')
-                return render(request, 'user/register.html', {'form': form})
+                return JsonResponse({'status': 'error', 'errors': form.errors})
 
             if not is_password_strong(password1):
                 messages.error(request, "Parol kamida 8 ta belgidan iborat bo'lishi va katta harf, kichik harf, raqam va maxsus belgi o'z ichiga olishi kerak.")
-                return render(request, 'user/register.html', {'form': form})
-
+                return JsonResponse({'status': 'error', 'errors': form.errors})
+            
             try:
-                user = User(username=username, email=email, password=make_password(password1))
+                # Create and save the user
+                user = User(username=username, phone_number=phone_number, password=make_password(password1))
                 user.save()
+                # Specify the authentication backend
+                backend = get_backends()[0]  # Get the first authentication backend
+                user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
                 
+                # Log the user in
+                login(request, user)
+
+                # Send verification email
                 verification_code = str(random.randint(100000, 999999))
                 send_verification_email(request, user.email, verification_code)
 
+                # Store verification details in session
                 request.session['verification_code'] = verification_code
-                request.session['user_email'] = user.email
+                request.session['phone_number'] = user.phone_number
                 request.session['verification_time'] = timezone.now().isoformat()
 
-                messages.success(request, 'Ro\'yxatdan o\'tishingiz muvaffaqiyatli yakunlandi! Iltimos, emailni tekshiring.')
+                messages.success(request, 'Ro\'yxatdan o\'tishingiz muvaffaqiyatli yakunlandi!')
                 
                 return JsonResponse({'status': 'success', 'message': 'Ro\'yxatdan o\'tish muvaffaqiyatli'})
-                # return redirect('user:verify_email')
+                
             except IntegrityError as e:
-                pass               
+                return JsonResponse({'status': 'error', 'errors': 'Database error'})
 
-        else:
-                
-                print(form.errors)
-                # message = messages.error(request, f'Foydalanuvchi yaratishda xatolik yuz berdi: {}')
-                
-                return render(request, 'user/register.html', {'message': form.errors})
-
+        else:                
+            return JsonResponse({'status': 'error', 'errors': form.errors})
     else:
         form = UserRegistrationForm()
     return render(request, 'user/register.html', {'form': form})
 
 
-# def verify_email(request):
-#     user_email = request.session.get('user_email')
-
-#     if request.method == 'POST':
-#         verification_code = request.POST.get('verification_code')
-#         # Tasdiqlash kodini tekshirish lozim. O'zingizga mos kodni oling.
-#         expected_code = '1234'  # O'zgartiring yoki dinamik qilish
-#         if verification_code == expected_code:  # Kodni tekshirish
-#             messages.success(request, 'Sizning hisobingiz tasdiqlandi!')
-#             return redirect('services:service_list')  # Tasdiqlashdan so'ng login sahifasiga o'ting
-#         else:
-#             messages.error(request, 'Noto\'g\'ri tasdiqlash kodi.')
-
-#     return render(request, 'user/verify_email.html', {'email':user_email})  # Tasdiqlash sahifasini ko'rsatish
-
-
-
 def verify_email(request):
-    # Retrieve or generate the verification code
-    user_email = request.session.get('user_email')
-    if not user_email:
-        messages.error(request, "Email manzili topilmadi.")
-        return redirect('some_other_page')  # Add a valid redirect if email not found in session
 
-    # Generate a random 4-digit code if not stored
+    user_phone = request.user.phone_number
+
+
+
+    
+    if not user_phone:
+        messages.error(request, "Email manzili topilmadi.")
+        return redirect('user:register')  
+
+
     if 'expected_code' not in request.session:
         expected_code = str(random.randint(1000, 9999))
+
         request.session['expected_code'] = expected_code
 
-        # Send the code to the user's email
-        send_mail(
-            subject='Email Tasdiqlash Kodingiz',
-            message=f'Sizning tasdiqlash kodingiz: {expected_code}',
-            from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
-            recipient_list=[user_email],
-            fail_silently=False,
-        )
+        
         messages.info(request, "Tasdiqlash kodi email manzilingizga yuborildi.")
 
     if request.method == 'POST':
@@ -140,7 +132,7 @@ def verify_email(request):
         else:
             messages.error(request, 'Noto\'g\'ri tasdiqlash kodi.')
 
-    return render(request, 'user/verify_email.html', {'email': user_email})
+    return render(request, 'user/verify_email.html', {'user_phone': user_phone})
 
 
 

@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==5.1.1"
+django = "*"
 django-rest-framework = "*"
 django-allauth = "*"
 django-crispy-forms = "*"
@@ -19,6 +19,8 @@ django-cors-headers = "*"
 djangorestframework-simplejwt = "*"
 graphene-django = "*"
 python-dotenv = "*"
+graphene = "*"
+aiogram = "==2.14"
 
 [dev-packages]
 

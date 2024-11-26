@@ -1,12 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Tasdiqlash kodi kiritish</h1>
-    <form method="post" action="{% url 'user:verify_email' %}">
+    <h1>Telefon raqamini tasdiqlash:  </h1>
+    <a href='https://t.me/UserSmmUzbot'> telegram bot </a>
+    <form method="post" >
         {% csrf_token %}
-        <label for="verification_code">Tasdiqlash kodini kiriting {{email}}:</label>
-        <input type="text" id="verification_code" name="verification_code" required>
+     
+
+        <label for="verification_code">telefon raqam kiriting :</label>
+        <input type="text" id="verification_code" name="phone" required>
         <button type="submit">Tasdiqlash</button>
+
+        {% if phone %}
+        <label for="code">Tasdiqlash Kodini kiriting</label>
+        <input type="text" id="code" name="code" >
+        {% endif  %}
+
+
     </form>
     {% if messages %}
     {% for message in messages %}

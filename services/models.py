@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from datetime import timedelta
 from django.utils import timezone
 import decimal
 from decimal import Decimal
 import requests
 from django.conf import settings
+
 
 
 User = get_user_model()
@@ -157,6 +159,8 @@ class Service(models.Model):
     completion_time = models.IntegerField(editable=False)  # daqiqalarda
     completion_rate = models.IntegerField(default=50000, editable=False)  # kuniga maksimal bajarilish miqdori
     order_speed = models.IntegerField(default=0)
+    from django.db.models.signals import post_save
+    from django.dispatch import receiver
     # ...
     def save(self, *args, **kwargs):
         if self.base_price is None:
@@ -232,6 +236,7 @@ class Order(models.Model):
             self.expected_completion_time = timezone.now() + timedelta(minutes=self.service.completion_time)
 
         user_balance = UserBalance.objects.get(user=self.user)
+        
         if user_balance.has_sufficient_balance(self.service.price):
             user_balance.update_balance(-self.service.price)
             super().save(*args, **kwargs)
@@ -261,19 +266,56 @@ class PaymentMethod(models.Model):
         return f"{self.user.username} - Karta: {self.card_number}"
 
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
+from decimal import Decimal
+
+
+
+
+
+
+User = get_user_model()
+
 class Balance(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.FloatField(default=0)
 
-    def update_balance(self, amount):
-        self.amount += Decimal(str(amount))
-          # float ni Decimal ga aylantirish
-        self.balance +=amount
-        self.save()
     
-    def has_sufficient_balance(self, amount):
-        # amount ni Decimal ga aylantirish
-        return self.balance >= decimal.Decimal(amount)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.amount}' 
+
+
+
+
+@receiver(post_save, sender=User)
+def create_user_balance(sender, instance, created, **kwargs):
+    if created:
+        Balance.objects.create(user=instance)
+
+
+# class Balance(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+
+#     @receiver(post_save, sender=User)
+#     def create_user_balance(sender, instance, created, **kwargs):
+#         if created:
+#             Balance.objects.create(user=instance)
+
+
+#     def update_balance(self, amount):
+#         self.amount += Decimal(str(amount))
+#           # float ni Decimal ga aylantirish
+#         self.balance +=amount
+#         self.save()
+    
+#     def has_sufficient_balance(self, amount):
+#         # amount ni Decimal ga aylantirish
+#         return self.balance >= decimal.Decimal(amount)
 
 
 # Yana bir model qo'shilishi mumkin, masalan, cyber attackdan himoyalanish
